@@ -1,6 +1,8 @@
 package libnfc
 
 import (
+	"errors"
+
 	"github.com/maitredede/puregolibs/strings"
 )
 
@@ -130,4 +132,8 @@ func (d *NfcDevice) GetInformationAbout() (string, error) {
 
 func (d *NfcDevice) Ptr() uintptr {
 	return d.ptr
+}
+
+func (d *NfcDevice) InitiatorListPassiveTargets(m Modulation) ([]NfcTarget, error) {
+	return nil, errors.New("work in progress")
 }
