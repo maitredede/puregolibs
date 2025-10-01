@@ -1,4 +1,5 @@
 package libnfc
 
-type NfcTarget struct {
+type NfcTarget interface {
 }
+
