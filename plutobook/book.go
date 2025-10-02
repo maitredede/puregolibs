@@ -69,25 +69,49 @@ func (b *Book) GetPageMargins() PageMargins {
 }
 
 func (b *Book) LoadURL(url string, userStyle string, userScript string) error {
+	libInit()
+	if b.ptr == 0 {
+		return ErrBookIsClosed
+	}
 	panic("TODO")
 }
 
 func (b *Book) LoadHTML(html string, userStyle string, userScript string, baseUrl string) error {
+	libInit()
+	if b.ptr == 0 {
+		return ErrBookIsClosed
+	}
 	panic("TODO")
 }
 
 func (b *Book) RenderPage(canvas *Canvas, pageIndex int) error {
+	libInit()
+	if b.ptr == 0 {
+		return ErrBookIsClosed
+	}
 	panic("TODO")
 }
 
 func (b *Book) WriteToPDF(file string) error {
+	libInit()
+	if b.ptr == 0 {
+		return ErrBookIsClosed
+	}
 	panic("TODO")
 }
 
 func (b *Book) WriteToPDFRange(file string, pageStart, pageEnd, pageStep int) error {
+	libInit()
+	if b.ptr == 0 {
+		return ErrBookIsClosed
+	}
 	panic("TODO")
 }
 
 func (b *Book) SetCustomResourceFetcher(fetcher CustomResourceFetcher) error {
+	libInit()
+	if b.ptr == 0 {
+		return ErrBookIsClosed
+	}
 	panic("TODO")
 }
