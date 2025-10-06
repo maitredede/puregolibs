@@ -2,5 +2,5 @@
 
 package main
 
-// #cgo pkg-config: libnfc libfreefare sane-backends
+// #cgo pkg-config: libnfc libfreefare sane-backends libcec
 import "C"
