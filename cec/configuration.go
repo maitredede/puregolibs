@@ -6,7 +6,6 @@ import (
 	"github.com/maitredede/puregolibs/strings"
 )
 
-
 type Configuration struct {
 	ClientVersion   VersionValue
 	DeviceName      string
@@ -33,6 +32,17 @@ type DeviceNameString [OSDNameSize]byte
 
 func (s DeviceNameString) String() string {
 	return strings.GoString(uintptr(unsafe.Pointer(&s[0])))
+}
+
+func CDeviceNameString(name string) DeviceNameString {
+	bin := []byte(name)
+	var value DeviceNameString
+
+	max := min(OSDNameSize, len(bin))
+	for i := 0; i < max; i++ {
+		value[i] = bin[i]
+	}
+	return value
 }
 
 type NativeConfiguration struct {

@@ -1,5 +1,11 @@
 package cec
 
+import (
+	"unsafe"
+
+	"github.com/maitredede/puregolibs/strings"
+)
+
 type LogicalAddress int32
 
 const (
@@ -24,6 +30,16 @@ const (
 )
 
 const logicalAddressesCount = 16
+
+func (a LogicalAddress) String() string {
+	libInit()
+
+	buffSize := int32(1024)
+	buff := make([]byte, buffSize)
+	buffPtr := uintptr(unsafe.Pointer(&buff[0]))
+	libCecLogicalAddressToString(a, buffPtr, buffSize)
+	return strings.GoStringN(buffPtr, int(buffSize))
+}
 
 type LogicalAddresses struct {
 	primary   LogicalAddress

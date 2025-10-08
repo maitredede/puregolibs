@@ -3,16 +3,16 @@ package cec
 import "testing"
 
 func TestInitExit(t *testing.T) {
-	cfg := Configuration{
-		ClientVersion: VersionCurrent,
-		DeviceName:    t.Name(),
-		DeviceTypes: DeviceTypeList{
-			DeviceTypeTV,
-		},
-		AutodectAddress: true,
-	}
+	// cfg := Configuration{
+	// 	ClientVersion: VersionCurrent,
+	// 	DeviceName:    t.Name(),
+	// 	DeviceTypes: DeviceTypeList{
+	// 		DeviceTypeTV,
+	// 	},
+	// 	AutodectAddress: true,
+	// }
 
-	con, err := Initialise(&cfg)
+	con, err := Open("", "", true)
 	if err != nil {
 		t.Fatal(err)
 	}
