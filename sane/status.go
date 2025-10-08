@@ -1,6 +1,6 @@
 package sane
 
-type SANE_Status int16
+type SANE_Status int32
 
 const (
 	StatusGood SANE_Status = iota

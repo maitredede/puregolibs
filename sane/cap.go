@@ -21,3 +21,23 @@ func (c Cap) IsSettable() bool {
 	val := int32(c) & int32(CapSoftSelect)
 	return val != 0
 }
+
+func (c Cap) IsDetectable() bool {
+	val := int32(c) & int32(CapSoftDetect)
+	return val != 0
+}
+
+func (c Cap) IsAutomatic() bool {
+	val := int32(c) & int32(CapAutomatic)
+	return val != 0
+}
+
+func (c Cap) IsEmulated() bool {
+	val := int32(c) & int32(CapEmulated)
+	return val != 0
+}
+
+func (c Cap) IsAdvanced() bool {
+	val := int32(c) & int32(CapAdvanced)
+	return val != 0
+}

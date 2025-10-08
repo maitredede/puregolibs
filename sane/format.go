@@ -2,17 +2,17 @@ package sane
 
 import "fmt"
 
-type Frame int32
+type Format int32
 
 const (
-	FrameGray Frame = iota
+	FrameGray Format = iota
 	FrameRGB
 	FrameRed
 	FrameGreen
 	FrameBlue
 )
 
-func (f Frame) String() string {
+func (f Format) String() string {
 	switch f {
 	case FrameGray:
 		return "gray"

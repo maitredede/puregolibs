@@ -1,9 +1,13 @@
 package sane
 
-import "unsafe"
+import (
+	"unsafe"
+
+	"github.com/maitredede/puregolibs/sane/internal"
+)
 
 type Parameters struct {
-	Format        Frame
+	Format        Format
 	IsLastFrame   bool
 	BytesPerLine  int
 	PixelsPerLine int
@@ -12,17 +16,17 @@ type Parameters struct {
 }
 
 type internalParameters struct {
-	format          Frame
-	last_frame      SANE_Bool
-	bytes_per_line  SANE_Int
-	pixels_per_line SANE_Int
-	lines           SANE_Int
-	depth           SANE_Int
+	format          Format
+	last_frame      internal.SANE_Bool
+	bytes_per_line  internal.SANE_Int
+	pixels_per_line internal.SANE_Int
+	lines           internal.SANE_Int
+	depth           internal.SANE_Int
 }
 
-func GetParameters(h SANE_Handle) (Parameters, error) {
+func (h *Handle) GetParameters() (Parameters, error) {
 	var np internalParameters
-	ret := libSaneGetParameters(h, uintptr(unsafe.Pointer(&np)))
+	ret := libSaneGetParameters(h.h, uintptr(unsafe.Pointer(&np)))
 	if ret != StatusGood {
 		return Parameters{}, mkError(ret)
 	}

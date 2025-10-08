@@ -1,11 +1,13 @@
 package sane
 
-func SetIOMode(h SANE_Handle, nonBlockingMode bool) error {
-	var m SANE_Bool = SANE_FALSE
+import "github.com/maitredede/puregolibs/sane/internal"
+
+func (h *Handle) SetIOMode(nonBlockingMode bool) error {
+	var m internal.SANE_Bool = internal.SANE_FALSE
 	if nonBlockingMode {
-		m = SANE_TRUE
+		m = internal.SANE_TRUE
 	}
-	ret := libSaneSetIOMode(h, m)
+	ret := libSaneSetIOMode(h.h, m)
 	if ret != StatusGood {
 		return mkError(ret)
 	}

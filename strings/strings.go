@@ -35,3 +35,21 @@ func GoString(c uintptr) string {
 	}
 	return string(unsafe.Slice((*byte)(ptr), length))
 }
+
+// // GoStringB copies a null-terminated char* to a Go string.
+// func GoStringB(arr []byte) string {
+// 	if len(arr) == 0 {
+// 		return ""
+// 	}
+// 	sb := strings.Builder{}
+// 	sb.Grow(len(arr))
+// 	for _, b := range arr {
+// 		if b == 0 {
+// 			break
+// 		}
+// 		if err := sb.WriteByte(b); err != nil {
+// 			panic("FIXME")
+// 		}
+// 	}
+// 	return sb.String()
+// }

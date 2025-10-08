@@ -1,6 +1,9 @@
 package sane
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestInitExit(t *testing.T) {
 
@@ -46,10 +49,10 @@ func TestOpenClose(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	Close(h)
+	h.Close()
 }
 
-func TestGetOptionDescriptors(t *testing.T) {
+func TestGetOptionDescriptorsParams(t *testing.T) {
 	if err := Init(); err != nil {
 		t.Fatal(err)
 	}
@@ -70,11 +73,38 @@ func TestGetOptionDescriptors(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer Close(h)
+	defer h.Close()
 
-	options, err := GetOptionDescriptors(h)
+	descList, err := h.GetOptionDescriptors()
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("options: %+v", options)
+	var curGroup string
+	for _, desc := range descList {
+		if desc.Type == TypeGroup {
+			curGroup = desc.Title
+			continue
+		}
+
+		s := fmt.Sprintf("%s\t%2d %s %s %d", curGroup, desc.Number, desc.Title, desc.Type, desc.BinSize)
+
+		value, err := desc.GetValue()
+		if err != nil {
+			t.Log(err)
+			t.Fail()
+			continue
+		}
+		s = fmt.Sprintf("%s\tv=%v", s, value)
+		if desc.Constraint != nil {
+			s = fmt.Sprintf("%s\tconstraint %s=%v", s, desc.ConstraintType, desc.Constraint)
+		}
+
+		t.Log(s)
+	}
+
+	params, err := h.GetParameters()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%+v", params)
 }

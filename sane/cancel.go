@@ -1,5 +1,5 @@
 package sane
 
-func Cancel(h SANE_Handle) {
-	libSaneCancel(h)
+func (h *Handle) Cancel() {
+	libSaneCancel(h.h)
 }

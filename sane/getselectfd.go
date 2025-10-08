@@ -1,11 +1,15 @@
 package sane
 
-import "unsafe"
+import (
+	"unsafe"
 
-func GetSelectFD(h SANE_Handle) (uintptr, error) {
+	"github.com/maitredede/puregolibs/sane/internal"
+)
 
-	var fd SANE_Int
-	ret := libSaneGetSelectFD(h, &fd)
+func (h *Handle) GetSelectFD() (uintptr, error) {
+
+	var fd internal.SANE_Int
+	ret := libSaneGetSelectFD(h.h, &fd)
 	if ret != StatusGood {
 		return 0, mkError(ret)
 	}

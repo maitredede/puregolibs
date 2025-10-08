@@ -7,6 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/ebitengine/purego"
+	"github.com/maitredede/puregolibs/sane/internal"
 )
 
 var (
@@ -36,36 +37,20 @@ func mustGetSymbol(sym string) uintptr {
 	return ptr
 }
 
-type SANE_Word = int32
-type SANE_Int = SANE_Word
-type SANE_Bool int32
-
-const (
-	SANE_FALSE SANE_Bool = 0
-	SANE_TRUE  SANE_Bool = 1
-)
-
-func (b SANE_Bool) Go() bool {
-	return b != SANE_FALSE
-}
-
-type SANE_Handle = uintptr
-type SANE_Byte = byte
-
 var (
-	libSaneInit func(versionCode *SANE_Int, authorize uintptr) SANE_Status
+	libSaneInit func(versionCode *internal.SANE_Int, authorize uintptr) SANE_Status
 	libSaneExit func()
 	// libSaneGetDevices          func(deviceList *uintptr, localOnly SANE_Bool) SANE_Status
-	libSaneOpen                func(name string, handle *SANE_Handle) SANE_Status
-	libSaneClose               func(h SANE_Handle)
-	libSaneGetOptionDescriptor func(h SANE_Handle, n SANE_Int) uintptr // const SANE_Option_Descriptor *
-	libSaneControlOption       func(h SANE_Handle, n SANE_Int, a SANE_Action, v unsafe.Pointer, i *SANE_Int) SANE_Status
-	libSaneGetParameters       func(h SANE_Handle, p uintptr /*SANE_Parameters **/) SANE_Status
-	libSaneStart               func(h SANE_Handle) SANE_Status
-	libSaneRead                func(h SANE_Handle, buf *SANE_Byte, maxLen SANE_Int, ln *SANE_Int) SANE_Status
-	libSaneCancel              func(h SANE_Handle)
-	libSaneSetIOMode           func(h SANE_Handle, m SANE_Bool) SANE_Status
-	libSaneGetSelectFD         func(h SANE_Handle, fd *SANE_Int) SANE_Status
+	libSaneOpen                func(name string, handle *internal.SANE_Handle) SANE_Status
+	libSaneClose               func(h internal.SANE_Handle)
+	libSaneGetOptionDescriptor func(h internal.SANE_Handle, n internal.SANE_Int) *internal.SANE_Option_Descriptor
+	libSaneControlOption       func(h internal.SANE_Handle, n internal.SANE_Int, a SANE_Action, v unsafe.Pointer, i *internal.SANE_Int) SANE_Status
+	libSaneGetParameters       func(h internal.SANE_Handle, p uintptr /*SANE_Parameters **/) SANE_Status
+	libSaneStart               func(h internal.SANE_Handle) SANE_Status
+	libSaneRead                func(h internal.SANE_Handle, buf *internal.SANE_Byte, maxLen internal.SANE_Int, ln *internal.SANE_Int) SANE_Status
+	libSaneCancel              func(h internal.SANE_Handle)
+	libSaneSetIOMode           func(h internal.SANE_Handle, m internal.SANE_Bool) SANE_Status
+	libSaneGetSelectFD         func(h internal.SANE_Handle, fd *internal.SANE_Int) SANE_Status
 	libSaneStrStatus           func(status SANE_Status) string
 )
 
@@ -89,7 +74,7 @@ func libInitFuncs() {
 func Init() error {
 	libInit()
 
-	var versionCode *SANE_Int = nil
+	var versionCode *internal.SANE_Int = nil
 	// authentication not supported yet
 	var authorize uintptr = 0
 	s := libSaneInit(versionCode, authorize)

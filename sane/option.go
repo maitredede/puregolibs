@@ -1,62 +1,34 @@
 package sane
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"unsafe"
 
+	"github.com/maitredede/puregolibs/sane/internal"
 	"github.com/maitredede/puregolibs/strings"
 )
 
-// Option represents a scanning option.
-type Option struct {
-	Name         string        // option name
-	Group        string        // option group
-	Title        string        // option title
-	Desc         string        // option description
-	Type         Type          // option type
-	Unit         Unit          // units
-	Length       int           // vector length for vector-valued options
-	ConstrSet    []interface{} // constraint set
-	ConstrRange  *Range        // constraint range
-	IsActive     bool          // whether option is active
-	IsSettable   bool          // whether option can be set
-	IsDetectable bool          // whether option value can be detected
-	IsAutomatic  bool          // whether option has an auto value
-	IsEmulated   bool          // whether option is emulated
-	IsAdvanced   bool          // whether option is advanced
-	index        int           // internal option index
-	size         int           // internal option size in bytes
-}
-
 type OptionDescriptor struct {
+	handle *Handle
+
 	Number         int
 	Name           string
 	Title          string
 	Description    string
 	Type           Type
 	Unit           Unit
-	Size           int
+	BinSize        int
 	Cap            Cap
 	ConstraintType ConstraintType
-	Constaint      any
+	Constraint     any
 }
 
-type internalOptionDescriptor struct {
-	Name           uintptr
-	Title          uintptr
-	Desc           uintptr
-	Type           Type
-	Unit           Unit
-	Size           SANE_Int
-	Cap            Cap
-	ConstraintType ConstraintType
-	Constraint     uintptr
-}
-
-func GetOptionDescriptors(h SANE_Handle) ([]OptionDescriptor, error) {
+func (h *Handle) GetOptionDescriptors() ([]OptionDescriptor, error) {
 	var count uint32
-	var flags Info
-	ret := libSaneControlOption(h, 0, SANEActionGetValue, unsafe.Pointer(&count), &flags)
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(h.h, 0, SANEActionGetValue, unsafe.Pointer(&count), &flags)
 	if ret != StatusGood {
 		return nil, fmt.Errorf("can't count options: %w", mkError(ret))
 	}
@@ -64,61 +36,332 @@ func GetOptionDescriptors(h SANE_Handle) ([]OptionDescriptor, error) {
 	descriptors := make([]OptionDescriptor, count)
 	for i := 0; i < int(count); i++ {
 
-		descPtr := libSaneGetOptionDescriptor(h, SANE_Int(i))
-		desc := (*internalOptionDescriptor)(unsafe.Pointer(descPtr))
+		// descPtr := libSaneGetOptionDescriptor(h.h, internal.SANE_Int(i))
+		// d := convertOptionDescriptor(descPtr, i)
+		nativeDesc := libSaneGetOptionDescriptor(h.h, internal.SANE_Int(i))
+		d := convertOptionDescriptor(nativeDesc, i)
 
-		d := OptionDescriptor{
-			Number:         i,
-			Type:           desc.Type,
-			Unit:           desc.Unit,
-			Size:           int(desc.Size),
-			Cap:            desc.Cap,
-			ConstraintType: desc.ConstraintType,
-		}
-		if desc.Name != 0 {
-			d.Name = strings.GoString(desc.Name)
-		}
-		if desc.Title != 0 {
-			d.Title = strings.GoString(desc.Title)
-		}
-		if desc.Desc != 0 {
-			d.Description = strings.GoString(desc.Desc)
-		}
-
-		switch desc.ConstraintType {
-		case ConstraintRange:
-			c := (*SANE_Range)(unsafe.Pointer(desc.Constraint))
-			d.Constaint = c
-		case ConstraintWordList:
-			arr := (*SANE_Word)(unsafe.Pointer(desc.Constraint))
-			l := *arr
-			c := unsafe.Slice(arr, uintptr(l+1))
-			d.Constaint = c[1:]
-		case ConstraintStringList:
-			//arr := (*uintptr)(unsafe.Pointer(desc.Constraint))
-			arr := (*[1 << 30]*uintptr)(unsafe.Pointer(desc.Constraint))
-			strs := make([]string, 0, 30)
-			ci := 0
-			for {
-				p := arr[ci]
-				if p == nil {
-					break
-				}
-				ci++
-
-				s := strings.GoString(uintptr(unsafe.Pointer(p)))
-				strs = append(strs, s)
-			}
-			d.Constaint = strs
-		}
+		d.handle = h
 
 		descriptors[i] = d
 	}
 	return descriptors, nil
 }
 
-type SANE_Range struct {
-	Min   SANE_Word
-	Max   SANE_Word
-	Quant SANE_Word
+func convertOptionDescriptor(desc *internal.SANE_Option_Descriptor, number int) OptionDescriptor {
+	d := OptionDescriptor{
+		Number:         number,
+		Type:           Type(desc.Type),
+		Unit:           Unit(desc.Unit),
+		BinSize:        int(desc.Size),
+		Cap:            Cap(desc.Cap),
+		ConstraintType: ConstraintType(desc.ConstraintType),
+	}
+	if desc.Name != 0 {
+		d.Name = strings.GoString(desc.Name)
+	}
+	if desc.Title != 0 {
+		d.Title = strings.GoString(desc.Title)
+	}
+	if desc.Desc != 0 {
+		d.Description = strings.GoString(desc.Desc)
+	}
+
+	switch d.ConstraintType {
+	case ConstraintRange:
+		c := (*internalSANE_Range)(unsafe.Pointer(desc.Constraint))
+		switch d.Type {
+		case TypeInt:
+			d.Constraint = &Range{
+				Min:   intFromSane(c.Min),
+				Max:   intFromSane(c.Max),
+				Quant: intFromSane(c.Quant),
+			}
+		case TypeFloat:
+			d.Constraint = &Range{
+				Min:   floatFromSane(c.Min),
+				Max:   floatFromSane(c.Max),
+				Quant: floatFromSane(c.Quant),
+			}
+		}
+		// c := (*SANE_Range)(unsafe.Pointer(desc.Constraint))
+		// d.Constaint = c
+	case ConstraintWordList:
+		arr := (*internal.SANE_Word)(unsafe.Pointer(desc.Constraint))
+		l := *arr
+		c := unsafe.Slice(arr, uintptr(l+1))
+		d.Constraint = c[1:]
+	case ConstraintStringList:
+		//arr := (*uintptr)(unsafe.Pointer(desc.Constraint))
+		arr := (*[1 << 30]*uintptr)(unsafe.Pointer(desc.Constraint))
+		strs := make([]string, 0, 30)
+		ci := 0
+		for {
+			p := arr[ci]
+			if p == nil {
+				break
+			}
+			ci++
+
+			s := strings.GoString(uintptr(unsafe.Pointer(p)))
+			strs = append(strs, s)
+		}
+		d.Constraint = strs
+	}
+	return d
+}
+
+type internalSANE_Range struct {
+	Min   internal.SANE_Word
+	Max   internal.SANE_Word
+	Quant internal.SANE_Word
+}
+
+func (h *Handle) GetOptionDescriptor(option int) *OptionDescriptor {
+	ptr := libSaneGetOptionDescriptor(h.h, internal.SANE_Int(option))
+	if ptr == nil {
+		return nil
+	}
+
+	desc := convertOptionDescriptor(ptr, option)
+
+	return &desc
+}
+
+func (d OptionDescriptor) GetValue() (any, error) {
+
+	switch d.Type {
+	case TypeBool:
+		if d.BinSize != 4 {
+			panic("FIXME")
+		}
+		return d.GetValueBool()
+	case TypeInt:
+		if d.BinSize != 4 {
+			panic("FIXME")
+		}
+		return d.GetValueInt()
+	case TypeFloat:
+		if d.BinSize != 4 {
+			panic("FIXME")
+		}
+		return d.GetValueFloat()
+	case TypeString:
+		return d.GetValueString()
+	}
+	panic("FIXME")
+}
+
+func (d OptionDescriptor) GetValueBool() (bool, error) {
+	var val internal.SANE_Bool
+	valPtr := unsafe.Pointer(&val)
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionGetValue, valPtr, &flags)
+	if ret != StatusGood {
+		return false, mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("getValueBool(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	return val.Go(), nil
+}
+
+func (d OptionDescriptor) GetValueInt() (int, error) {
+	var val internal.SANE_Int
+	valPtr := unsafe.Pointer(&val)
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionGetValue, valPtr, &flags)
+	if ret != StatusGood {
+		return 0, mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("getValueInt(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	return int(val), nil
+}
+
+func (d OptionDescriptor) GetValueFloat() (float64, error) {
+	var val internal.SANE_Word
+	valPtr := unsafe.Pointer(&val)
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionGetValue, valPtr, &flags)
+	if ret != StatusGood {
+		return 0, mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("getValueFloat(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	return floatFromSane(val), nil
+}
+
+func (d OptionDescriptor) GetValueString() (string, error) {
+	val := make([]byte, d.BinSize)
+	valPtr := unsafe.Pointer(&val)
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionGetValue, valPtr, &flags)
+	if ret != StatusGood {
+		return "", mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("getValueString(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	valStr := strings.GoString(uintptr(valPtr))
+	return valStr, nil
+}
+
+func (d OptionDescriptor) SetValueAuto() (Info, error) {
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionSetAuto, nil, &flags)
+	if ret != StatusGood {
+		return Info{}, mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("setValueAuto(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	info := infoFromValue(flags)
+	return info, nil
+}
+
+func (h *Handle) SetOptionValueAuto(name string) (Info, error) {
+	opts, err := h.GetOptionDescriptors()
+	if err != nil {
+		return Info{}, err
+	}
+
+	for _, desc := range opts {
+		if desc.Name != name {
+			continue
+		}
+
+		return desc.SetValueAuto()
+	}
+	return Info{}, fmt.Errorf("option '%s' not found", name)
+}
+
+func (d OptionDescriptor) SetValue(value any) (Info, error) {
+	switch d.Type {
+	case TypeBool:
+		if d.BinSize != 4 {
+			panic("FIXME")
+		}
+		b, ok := value.(bool)
+		if !ok {
+			return Info{}, errors.New("value not a bool")
+		}
+		return d.SetValueBool(b)
+	case TypeInt:
+		if d.BinSize != 4 {
+			panic("FIXME")
+		}
+		i, ok := value.(int)
+		if !ok {
+			return Info{}, errors.New("value not a int")
+		}
+		return d.SetValueInt(i)
+	case TypeFloat:
+		if d.BinSize != 4 {
+			panic("FIXME")
+		}
+		f, ok := value.(float64)
+		if !ok {
+			return Info{}, errors.New("value not a float64")
+		}
+		return d.SetValueFloat(f)
+	case TypeString:
+		s, ok := value.(string)
+		if !ok {
+			return Info{}, errors.New("value not a string")
+		}
+		return d.SetValueString(s)
+	}
+	panic("FIXME")
+}
+
+func (h *Handle) SetOptionValue(name string, value any) (Info, error) {
+	opts, err := h.GetOptionDescriptors()
+	if err != nil {
+		return Info{}, err
+	}
+
+	for _, desc := range opts {
+		if desc.Name != name {
+			continue
+		}
+
+		return desc.SetValue(value)
+	}
+	return Info{}, fmt.Errorf("option '%s' not found", name)
+}
+
+func (d OptionDescriptor) SetValueBool(value bool) (Info, error) {
+	var nValue internal.SANE_Bool
+	if value {
+		nValue = internal.SANE_TRUE
+	} else {
+		nValue = internal.SANE_FALSE
+	}
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionSetValue, unsafe.Pointer(&nValue), &flags)
+	if ret != StatusGood {
+		return Info{}, mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("setValueBool(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	info := infoFromValue(flags)
+	return info, nil
+}
+
+func (d OptionDescriptor) SetValueString(value string) (Info, error) {
+	nValue := strings.CString(value)
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionSetValue, unsafe.Pointer(nValue), &flags)
+	if ret != StatusGood {
+		return Info{}, mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("setValueString(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	info := infoFromValue(flags)
+	return info, nil
+}
+
+func (d OptionDescriptor) SetValueInt(value int) (Info, error) {
+	var nValue internal.SANE_Int
+	nValue = internal.SANE_Int(value)
+
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionSetValue, unsafe.Pointer(&nValue), &flags)
+	if ret != StatusGood {
+		return Info{}, mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("setValueInt(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	info := infoFromValue(flags)
+	return info, nil
+}
+
+func (d OptionDescriptor) SetValueFloat(value float64) (Info, error) {
+	nValue := floatToSane(value)
+
+	var flags internal.SANE_Int
+	ret := libSaneControlOption(d.handle.h, internal.SANE_Int(d.Number), SANEActionSetValue, unsafe.Pointer(&nValue), &flags)
+	if ret != StatusGood {
+		return Info{}, mkError(ret)
+	}
+	if flags != 0 {
+		info := infoFromValue(flags)
+		slog.Warn(fmt.Sprintf("setValueInt(%d) (%s) info=%+v", d.Number, d.Name, info))
+	}
+	info := infoFromValue(flags)
+	return info, nil
 }
