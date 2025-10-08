@@ -36,6 +36,26 @@ func GoString(c uintptr) string {
 	return string(unsafe.Slice((*byte)(ptr), length))
 }
 
+// GoStringN copies a null-terminated char* to a Go string, or if reaching max len.
+func GoStringN(c uintptr, max int) string {
+	// We take the address and then dereference it to trick go vet from creating a possible misuse of unsafe.Pointer
+	ptr := *(*unsafe.Pointer)(unsafe.Pointer(&c))
+	if ptr == nil {
+		return ""
+	}
+	var length int
+	for {
+		if *(*byte)(unsafe.Add(ptr, uintptr(length))) == '\x00' {
+			break
+		}
+		if length >= max {
+			break
+		}
+		length++
+	}
+	return string(unsafe.Slice((*byte)(ptr), length))
+}
+
 // // GoStringB copies a null-terminated char* to a Go string.
 // func GoStringB(arr []byte) string {
 // 	if len(arr) == 0 {
