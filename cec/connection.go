@@ -18,8 +18,10 @@ const (
 )
 
 type Conn struct {
-	ptr uintptr
-	cfg *NativeConfiguration
+	ptr         uintptr
+	cfg         *NativeConfiguration
+	cb          *nativeICECCallbacks
+	disposables []func()
 }
 
 // func Initialise(cfg *Configuration) (*Conn, error) {
@@ -80,6 +82,9 @@ func (c *Conn) Close() error {
 		return ErrConnectionIsClosed
 	}
 	libCecDestroy(c.ptr)
+	for _, d := range c.disposables {
+		d()
+	}
 	c.ptr = 0
 	return nil
 }
@@ -93,53 +98,61 @@ func (c *Conn) GetLibInfo() (string, error) {
 }
 
 // Open - open a new connection to the CEC device with the given name
-func Open(name string, deviceName string, printLogs bool) (*Conn, error) {
+func Open(name string, deviceName string, appCallbacks Callbacks) (*Conn, error) {
 	libInit()
 
-	var cfgRaw NativeConfiguration
-	libCecClearConfiguration(&cfgRaw)
-	cfgRaw.ClientVersion = VersionCurrent
-	cfgRaw.DeviceTypes[0] = DeviceTypeRecordingDevice
-	cfgRaw.DeviceName = CDeviceNameString(deviceName)
+	cb, disposables := buildNativeCallbacks(appCallbacks)
 
-	ptr := libCecInitialise(&cfgRaw)
-	if ptr == 0 {
+	var cfgNative NativeConfiguration
+	libCecClearConfiguration(&cfgNative)
+	cfgNative.ClientVersion = VersionCurrent
+	cfgNative.DeviceTypes[0] = DeviceTypeRecordingDevice
+	cfgNative.DeviceTypes[1] = DeviceTypeReserved
+	cfgNative.DeviceName = CDeviceNameString(deviceName)
+	cfgNative.AutodectAddress = 1
+	cfgNative.Callbacks = cb
+	cfgNative.CallbackParam = 0
+
+	c := &Conn{
+		disposables: disposables,
+	}
+	c.cfg = &cfgNative
+	c.ptr = libCecInitialise(c.cfg)
+	if c.ptr == 0 {
+		for _, d := range disposables {
+			d()
+		}
 		return nil, errors.New("cec init failed")
 	}
 
-	adapter, err := getAdapter(ptr, name)
+	adapter, err := getAdapter(c.ptr, name)
 	if err != nil {
-		defer libCecDestroy(ptr)
+		c.Close()
 		return nil, err
 	}
 
-	err = openAdapter(ptr, adapter)
+	err = openAdapter(c.ptr, adapter)
 	if err != nil {
-		defer libCecDestroy(ptr)
+		c.Close()
 		return nil, err
 	}
 
-	cfgRet := libCecGetCurrentConfiguration(ptr, &cfgRaw)
+	cfgRet := libCecGetCurrentConfiguration(c.ptr, c.cfg)
 	if cfgRet == 1 {
 		//OK
 	} else {
 		//ERR
 	}
-	c := Conn{
-		ptr: ptr,
-		cfg: &cfgRaw,
-	}
-
-	return &c, nil
+	return c, nil
 }
 
 func getAdapter(connection uintptr, name string) (Adapter, error) {
-	var adapter Adapter
 
 	var deviceList [10]nativeAdapter
 	// devicesFound := libcec_find_adapters(connection, &deviceList[0], 10, nil)
-	devicesFound := int(libCecFindAdapters(connection, &deviceList[0], byte(len(deviceList)), nil))
+	devicesFound := int(libCecFindAdapters(connection, &deviceList[0], 10, nil))
 
+	var adapter Adapter
 	for i := 0; i < devicesFound; i++ {
 		device := deviceList[i]
 		adapter.Path = strings.GoStringN(uintptr(unsafe.Pointer(&device.path[0])), 1024)

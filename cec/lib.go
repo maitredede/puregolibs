@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"runtime"
 	"sync"
+	"unsafe"
 
 	"github.com/ebitengine/purego"
+	"github.com/jupiterrider/ffi"
 )
 
 var (
@@ -17,7 +19,7 @@ var (
 func getSystemLibrary() string {
 	switch runtime.GOOS {
 	// case "darwin":
-	// 	return "libfreefare.dylib"
+	// 	return "libcec.dylib"
 	case "linux":
 		return "libcec.so"
 	case "windows":
@@ -112,7 +114,29 @@ var (
 )
 
 func libInitFuncs() {
-	purego.RegisterLibFunc(&libCecInitialise, initPtr, "libcec_initialise")
+	//purego.RegisterLibFunc(&libCecInitialise, initPtr, "libcec_initialise")
+	var cifInitialise ffi.Cif
+	if status := ffi.PrepCif(&cifInitialise, ffi.DefaultAbi, 1, &ffi.TypePointer, &ffi.TypePointer); status != ffi.OK {
+		panic(status)
+	}
+	symInitialize, err := getSymbol("libcec_initialise")
+	if err != nil {
+		panic(err)
+	}
+	libCecInitialise = func(configuration *NativeConfiguration) uintptr {
+		var ret uintptr
+
+		retPtr := unsafe.Pointer(&ret)
+		cfgPtr := unsafe.Pointer(configuration)
+
+		argsPtr := []unsafe.Pointer{
+			unsafe.Pointer(&cfgPtr),
+		}
+
+		ffi.Call(&cifInitialise, symInitialize, retPtr, argsPtr...)
+		return ret
+	}
+
 	purego.RegisterLibFunc(&libCecDestroy, initPtr, "libcec_destroy")
 	purego.RegisterLibFunc(&libCecOpen, initPtr, "libcec_open")
 	purego.RegisterLibFunc(&libCecClose, initPtr, "libcec_close")

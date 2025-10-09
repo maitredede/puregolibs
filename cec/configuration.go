@@ -59,12 +59,14 @@ type NativeConfiguration struct {
 
 	ServerVersion VersionValue
 
+	// player specific settings
 	GetSettingsFromROM byte
 	ActivateSource     byte
 	PowerOffOnStandby  byte
 
 	CallbackParam uintptr
-	Callbacks     uintptr
+	//Callbacks     uintptr
+	Callbacks *nativeICECCallbacks
 
 	LogicalAddress    LogicalAddress
 	FirmwareVersion   uint16
@@ -83,4 +85,27 @@ func toBool(b bool) byte {
 		return 1
 	}
 	return 0
+}
+
+func (n NativeConfiguration) Go() Configuration {
+	cfg := Configuration{
+		ClientVersion:      n.ClientVersion,
+		DeviceName:         n.DeviceName.String(),
+		DeviceTypes:        n.DeviceTypes,
+		AutodectAddress:    n.AutodectAddress != 0,
+		PhysicalAddress:    int(n.PhysicalAddress),
+		BaseDevice:         n.BaseDevice,
+		HDMIPort:           n.HDMIPort,
+		TVVendor:           n.TVVendor,
+		WakeDevices:        n.WakeDevices,
+		PowerDevices:       n.PowerDevices,
+		ServerVersion:      n.ServerVersion,
+		GetSettingsFromROM: n.GetSettingsFromROM != 0,
+		ActivateSource:     n.ActivateSource != 0,
+		PowerOffOnStandby:  n.PowerOffOnStandby != 0,
+		LogicalAddress:     n.LogicalAddress,
+		FirmwareVersion:    n.FirmwareVersion,
+		//TODO
+	}
+	return cfg
 }

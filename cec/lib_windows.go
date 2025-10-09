@@ -4,21 +4,38 @@ package cec
 
 import (
 	"errors"
+	"fmt"
+	"syscall"
 )
 
 var (
-	notAvailable error = errors.New("SANE is not available for windows")
+	theDLL *syscall.DLL
 )
 
 func libInit() {
 	initLckOnce.Lock()
 	defer initLckOnce.Unlock()
 
-	_ = libInitFuncs
-
-	panic(notAvailable)
+	if initPtr == 0 {
+		theFile := getSystemLibrary()
+		var err error
+		theDLL, err = syscall.LoadDLL(theFile)
+		if err != nil {
+			panic(fmt.Errorf("error loading lib '%s': %w", theFile, err))
+		} else {
+			initPtr = uintptr(theDLL.Handle)
+		}
+		libInitFuncs()
+	}
 }
 
-func getSymbol(_ /*sym*/ string) (uintptr, error) {
-	return 0, notAvailable
+func getSymbol(sym string) (uintptr, error) {
+	if theDLL == nil {
+		return 0, errors.New("library not initialized")
+	}
+	proc, err := theDLL.FindProc(sym)
+	if err != nil {
+		return 0, err
+	}
+	return proc.Addr(), nil
 }
