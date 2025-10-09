@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	notAvailable error = errors.New("SANE is not available for windows")
+	errLibNotAvailable error = errors.New("SANE is not available for windows")
 )
 
 func libInit() {
@@ -16,9 +16,9 @@ func libInit() {
 
 	_ = libInitFuncs
 
-	panic(notAvailable)
+	panic(errLibNotAvailable)
 }
 
 func getSymbol(_ /*sym*/ string) (uintptr, error) {
-	return 0, notAvailable
+	return 0, errLibNotAvailable
 }

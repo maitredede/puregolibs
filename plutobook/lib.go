@@ -17,7 +17,7 @@ var (
 func getSystemLibrary() string {
 	switch runtime.GOOS {
 	// case "darwin":
-	// 	return "/usr/lib/libSystem.B.dylib"
+	// 	return "libplutobook.dylib"
 	case "linux":
 		return "libplutobook.so"
 	case "windows":

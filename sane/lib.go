@@ -19,7 +19,7 @@ var (
 func getSystemLibrary() string {
 	switch runtime.GOOS {
 	// case "darwin":
-	// 	return "libfreefare.dylib"
+	// 	return "libsane.dylib"
 	case "linux":
 		return "libsane.so"
 	case "windows":
