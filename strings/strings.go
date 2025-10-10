@@ -19,6 +19,20 @@ func CString(name string) *byte {
 	return &b[0]
 }
 
+// CStringL converts a go string to *byte that can be passed to C code, and also returns its length
+func CStringL(name string) (*byte, int) {
+	if hasSuffix(name, "\x00") {
+		l := len(name) - 1
+		ptr := &(*(*[]byte)(unsafe.Pointer(&name)))[0]
+		return ptr, l
+	}
+
+	l := len(name)
+	b := make([]byte, l+1)
+	copy(b, name)
+	return &b[0], l
+}
+
 // GoString copies a null-terminated char* to a Go string.
 func GoString(c uintptr) string {
 	// We take the address and then dereference it to trick go vet from creating a possible misuse of unsafe.Pointer

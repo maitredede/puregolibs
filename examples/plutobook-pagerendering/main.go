@@ -32,7 +32,7 @@ func main() {
 	pageWidth := int(math.Ceil(float64(pageSize.Width) / float64(plutobook.UnitsPX)))
 	pageHeight := int(math.Ceil(float64(pageSize.Height) / float64(plutobook.UnitsPX)))
 
-	canvas, err := plutobook.NewImageCanvas(pageWidth, pageHeight, plutobook.ImageFormatARGB32)
+	canvas, err := plutobook.CreateImageCanvas(pageWidth, pageHeight, plutobook.ImageFormatARGB32)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

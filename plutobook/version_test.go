@@ -3,10 +3,14 @@ package plutobook
 import (
 	"testing"
 
+	"github.com/jupiterrider/ffi"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestVersion(t *testing.T) {
+
+	ffiVersionString := ffi.GetVersion()
+	t.Logf("using ffi version: %s", ffiVersionString)
 
 	minVersion := 0*10000 + 9*100 + 0
 
@@ -16,5 +20,7 @@ func TestVersion(t *testing.T) {
 }
 
 func TestVersionString(t *testing.T) {
-	t.Logf("version string: %s", Version())
+	ffiVersionString := ffi.GetVersion()
+	t.Logf("using ffi version: %s", ffiVersionString)
+	t.Logf("plutobook version: %s", Version())
 }
