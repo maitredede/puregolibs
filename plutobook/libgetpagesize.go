@@ -33,12 +33,12 @@ func registerFFIGetPageSizeAt() {
 	sym := mustGetSymbol("plutobook_get_page_size_at")
 
 	var cif ffi.Cif
-	if ok := ffi.PrepCif(&cif, ffi.DefaultAbi, 2, &ffiPageSizeType, &ffi.TypePointer, &ffi.TypeUint16); ok != ffi.OK {
+	if ok := ffi.PrepCif(&cif, ffi.DefaultAbi, 2, &ffiPageSizeType, &ffi.TypePointer, &ffi.TypeUint32); ok != ffi.OK {
 		panic("plutobook_get_page_size_at cif prep is not OK")
 	}
 
 	libGetPageSizeAt = func(book uintptr, index int) PageSize {
-		nIndex := uint16(index)
+		nIndex := uint32(index)
 		var ret PageSize
 		args := []unsafe.Pointer{
 			unsafe.Pointer(book),

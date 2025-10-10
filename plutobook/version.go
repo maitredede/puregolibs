@@ -1,7 +1,7 @@
 package plutobook
 
 var (
-	libVersion       func() int16
+	libVersion       func() int32
 	libVersionString func() string
 )
 

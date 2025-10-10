@@ -24,12 +24,11 @@ func registerFFICreate() {
 	}
 
 	libCreate = func(pageSize PageSize, margins PageMargins, mediaType MediaType) uintptr {
-		var aMediaType int16 = int16(mediaType)
 		var ret uintptr
 		args := []unsafe.Pointer{
 			unsafe.Pointer(&pageSize),
 			unsafe.Pointer(&margins),
-			unsafe.Pointer(&aMediaType),
+			unsafe.Pointer(&mediaType),
 		}
 		ffi.Call(&libCreateCIF, libCreateSym, unsafe.Pointer(&ret), args...)
 		return ret

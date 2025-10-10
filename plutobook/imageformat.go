@@ -1,6 +1,6 @@
 package plutobook
 
-type ImageFormat int16
+type ImageFormat int32
 
 const (
 	ImageFormatInvalid ImageFormat = -1

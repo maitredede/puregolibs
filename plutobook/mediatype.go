@@ -2,7 +2,7 @@ package plutobook
 
 import "github.com/jupiterrider/ffi"
 
-type MediaType int
+type MediaType int32
 
 const (
 	MediaTypePrint MediaType = iota
@@ -10,7 +10,7 @@ const (
 )
 
 var (
-	ffiMediaTypeType = ffi.TypeSint16
+	ffiMediaTypeType = ffi.TypeSint32
 
-	libGetMediaType func(book uintptr) int16
+	libGetMediaType func(book uintptr) int32
 )
