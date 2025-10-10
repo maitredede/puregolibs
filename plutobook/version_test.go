@@ -12,7 +12,7 @@ func TestVersion(t *testing.T) {
 
 	v := VersionNumber()
 	t.Logf("version num: %d", v)
-	assert.GreaterOrEqual(t, minVersion, v)
+	assert.GreaterOrEqual(t, v, minVersion)
 }
 
 func TestVersionString(t *testing.T) {
