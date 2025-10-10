@@ -21,10 +21,18 @@ func getSystemLibrary() string {
 	case "linux":
 		return "libplutobook.so"
 	case "windows":
-		return "libplutobook.dll"
+		return "libplutobook-0.dll"
 	default:
 		panic(fmt.Errorf("GOOS=%s is not supported", runtime.GOOS))
 	}
+}
+
+func mustGetSymbol(sym string) uintptr {
+	ptr, err := getSymbol(sym)
+	if err != nil {
+		panic(err)
+	}
+	return ptr
 }
 
 func libInitFuncs() {

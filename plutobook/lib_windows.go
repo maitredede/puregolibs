@@ -2,10 +2,14 @@
 
 package plutobook
 
-import "golang.org/x/sys/windows"
+import (
+	"errors"
+	"fmt"
+	"syscall"
+)
 
 var (
-	theDLL = windows.NewLazySystemDLL(getSystemLibrary())
+	theDLL *syscall.DLL
 )
 
 func libInit() {
@@ -13,20 +17,25 @@ func libInit() {
 	defer initLckOnce.Unlock()
 
 	if initPtr == 0 {
-		initError = theDLL.Load()
-		if initError != nil {
-			panic(initError)
+		theFile := getSystemLibrary()
+		var err error
+		theDLL, err = syscall.LoadDLL(theFile)
+		if err != nil {
+			panic(fmt.Errorf("error loading lib '%s': %w", theFile, err))
+		} else {
+			initPtr = uintptr(theDLL.Handle)
 		}
-		initPtr = theDLL.Handle()
+		libInitFuncs()
 	}
-
-	libInitFuncs()
 }
 
-func mustGetSymbol(sym string) uintptr {
-	proc := theDLL.NewProc(sym)
-	if err := proc.Find(); err != nil {
-		panic(err)
+func getSymbol(sym string) (uintptr, error) {
+	if theDLL == nil {
+		return 0, errors.New("library not initialized")
 	}
-	return proc.Addr()
+	proc, err := theDLL.FindProc(sym)
+	if err != nil {
+		return 0, err
+	}
+	return proc.Addr(), nil
 }

@@ -25,9 +25,8 @@ func libInit() {
 
 		}
 		initPtr = theDLL.Handle()
+		libInitFuncs()
 	}
-
-	libInitFuncs()
 }
 
 func getSymbol(sym string) (uintptr, error) {

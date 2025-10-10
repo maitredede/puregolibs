@@ -15,15 +15,10 @@ func libInit() {
 		if initError != nil {
 			panic(initError)
 		}
+		libInitFuncs()
 	}
-
-	libInitFuncs()
 }
 
-func mustGetSymbol(sym string) uintptr {
-	ptr, err := purego.Dlsym(initPtr, sym)
-	if err != nil {
-		panic(err)
-	}
-	return ptr
+func getSymbol(sym string) (uintptr, error) {
+	return purego.Dlsym(initPtr, sym)
 }

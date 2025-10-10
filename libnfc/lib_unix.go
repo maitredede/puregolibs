@@ -20,9 +20,9 @@ func libInit() {
 			err := fmt.Errorf("error loading library %s: %w", name, initError)
 			panic(err)
 		}
-	}
 
-	libInitFuncs()
+		libInitFuncs()
+	}
 }
 
 func getSymbol(sym string) (uintptr, error) {

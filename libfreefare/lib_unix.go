@@ -15,9 +15,8 @@ func libInit() {
 		if initError != nil {
 			panic(initError)
 		}
+		libInitFuncs()
 	}
-
-	libInitFuncs()
 }
 
 func getSymbol(sym string) (uintptr, error) {
