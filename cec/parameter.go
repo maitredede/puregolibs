@@ -19,5 +19,5 @@ type nativeParameter struct {
 }
 
 func (n nativeParameter) Go() Parameter {
-	panic("TODO")
+	panic("TODO: nativeParameter.Go")
 }
