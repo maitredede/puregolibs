@@ -509,7 +509,7 @@ func buildCallbackCommandHandler(cmdCB CommandHandlerCallback) (uintptr, func())
 	}
 
 	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(commandReceivedCallback)
+	fn := ffi.NewCallback(commandHandlerCallback)
 
 	// prepare the closure
 	userData := unsafe.Pointer(&cmdCB)
