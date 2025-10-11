@@ -137,12 +137,13 @@ func TestBookHtmlSampleToPNGStream(t *testing.T) {
 	t.Logf("docSize: w=%v h=%v", w, h)
 
 	output := &bytes.Buffer{}
-	if err := b.WriteToPNGStream(output, int(w), int(h)); err != nil {
+	if err := b.WriteToPNGStream(output, 0, 0); err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("png size: %d", output.Len())
 
-	input := bytes.NewReader(output.Bytes())
+	bin := output.Bytes()
+	input := bytes.NewReader(bin)
 	img, err := png.Decode(input)
 	if err != nil {
 		t.Fatal(err)

@@ -83,9 +83,24 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libWriteToPNGStream, initPtr, "plutobook_write_to_png_stream")
 	purego.RegisterLibFunc(&libWriteToPNG, initPtr, "plutobook_write_to_png")
 
+	purego.RegisterLibFunc(&libSetSSLCaInfo, initPtr, "plutobook_set_ssl_cainfo")
+	purego.RegisterLibFunc(&libSetSSLCaPath, initPtr, "plutobook_set_ssl_capath")
+	purego.RegisterLibFunc(&libSetSSLVerifyPeer, initPtr, "plutobook_set_ssl_verify_peer")
+	purego.RegisterLibFunc(&libSetSSLVerifyHost, initPtr, "plutobook_set_ssl_verify_host")
+	purego.RegisterLibFunc(&libSetHttpFollowRedirects, initPtr, "plutobook_set_http_follow_redirects")
+	purego.RegisterLibFunc(&libSetHttpMaxRedirects, initPtr, "plutobook_set_http_max_redirects")
+	purego.RegisterLibFunc(&libSetHttpTimeout, initPtr, "plutobook_set_http_timeout")
 }
 
 var (
+	libSetSSLCaInfo           func(path string)
+	libSetSSLCaPath           func(path string)
+	libSetSSLVerifyPeer       func(verify bool)
+	libSetSSLVerifyHost       func(verify bool)
+	libSetHttpFollowRedirects func(follow bool)
+	libSetHttpMaxRedirects    func(amount int32)
+	libSetHttpTimeout         func(amount int32)
+
 	libGetDocumentWidth  func(book uintptr) float32
 	libGetDocumentHeight func(book uintptr) float32
 	libLoadHtml          func(book uintptr, data uintptr, length int32, userStyle uintptr, userScript uintptr, baseUrl uintptr) bool

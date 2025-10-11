@@ -20,7 +20,8 @@ func CreateImageCanvas(width, height int, imageFormat ImageFormat) (*ImageCanvas
 	libInit()
 	ptr := libImageCanvasCreate(int32(width), int32(height), imageFormat)
 	if ptr == 0 {
-		return nil, fmt.Errorf("image canvas create failed")
+		msg := libGetErrorMessage()
+		return nil, fmt.Errorf("image canvas create failed: %v", msg)
 	}
 	c := &ImageCanvas{
 		CanvasBase: CanvasBase{
@@ -71,7 +72,8 @@ func (c *ImageCanvas) WriteToPNG(file string) error {
 	cFile := strings.CString(file)
 	ret := libImageCanvasWriteToPNG(c.ptr, uintptr(unsafe.Pointer(cFile)))
 	if !ret {
-		return errors.New("image canvas png write failed")
+		msg := libGetErrorMessage()
+		return fmt.Errorf("image canvas png write failed: %v", msg)
 	}
 	return nil
 }
@@ -115,7 +117,8 @@ func (c *ImageCanvas) WriteToPNGStream(output io.Writer) error {
 		if stream.err != nil {
 			return stream.err
 		}
-		return errors.New("image canvas write failed")
+		msg := libGetErrorMessage()
+		return fmt.Errorf("image canvas write failed: %v", msg)
 	}
 	return nil
 }

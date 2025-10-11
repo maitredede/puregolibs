@@ -20,8 +20,7 @@ func NewBook(pageSize PageSize, margins PageMargins, mediaType MediaType) (*Book
 	ptr := libCreate(pageSize, margins, mediaType)
 	if ptr == 0 {
 		msg := libGetErrorMessage()
-		libClearErrorMessage()
-		return nil, errors.New(msg)
+		return nil, fmt.Errorf("book creation error: %v", msg)
 	}
 	b := Book{
 		ptr: ptr,
@@ -85,7 +84,8 @@ func (b *Book) LoadURL(url string, userStyle string, userScript string) error {
 	cUserScript := strings.CString(userScript)
 	ok := libLoadUrl(b.ptr, uintptr(unsafe.Pointer(cUrl)), uintptr(unsafe.Pointer(cUserStyle)), uintptr(unsafe.Pointer(cUserScript)))
 	if !ok {
-		return fmt.Errorf("error loading url %v", url)
+		msg := libGetErrorMessage()
+		return fmt.Errorf("error loading url %v: %v", url, msg)
 	}
 	return nil
 }
@@ -102,7 +102,8 @@ func (b *Book) LoadHTML(html string, userStyle string, userScript string, baseUr
 	cBaseUrl := strings.CString(baseUrl)
 	ok := libLoadHtml(b.ptr, uintptr(unsafe.Pointer(cHtml)), int32(lgHtml), uintptr(unsafe.Pointer(cUserStyle)), uintptr(unsafe.Pointer(cUserScript)), uintptr(unsafe.Pointer(cBaseUrl)))
 	if !ok {
-		return errors.New("error loading html")
+		msg := libGetErrorMessage()
+		return fmt.Errorf("error loading html: %v", msg)
 	}
 	return nil
 }
@@ -164,7 +165,8 @@ func (b *Book) WriteToPNG(file string, width, height int) error {
 	cFile := strings.CString(file)
 	ret := libWriteToPNG(b.ptr, uintptr(unsafe.Pointer(cFile)), int32(width), int32(height))
 	if !ret {
-		return errors.New("file write error")
+		msg := libGetErrorMessage()
+		return fmt.Errorf("file write error: %v", msg)
 	}
 	return nil
 }
@@ -207,7 +209,8 @@ func (b *Book) WriteToPNGStream(output io.Writer, width, height int) error {
 		if stream.err != nil {
 			return stream.err
 		}
-		return errors.New("png write failed")
+		msg := libGetErrorMessage()
+		return fmt.Errorf("png write failed: %v", msg)
 	}
 	return nil
 }
