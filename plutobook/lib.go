@@ -60,6 +60,10 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libLoadUrl, initPtr, "plutobook_load_url")
 
 	purego.RegisterLibFunc(&libImageCanvasCreate, initPtr, "plutobook_image_canvas_create")
+	// purego.RegisterLibFunc(&libPDFCanvasCreate, initPtr, "plutobook_pdf_canvas_create")
+	purego.RegisterLibFunc(&libPDFCanvasSetMetadata, initPtr, "plutobook_pdf_canvas_set_metadata")
+	// purego.RegisterLibFunc(&libPDFCanvasSetSize, initPtr, "plutobook_pdf_canvas_set_size")
+	purego.RegisterLibFunc(&libPDFCanvasShowPage, initPtr, "plutobook_pdf_canvas_show_page")
 	purego.RegisterLibFunc(&libCanvasDestroy, initPtr, "plutobook_canvas_destroy")
 	purego.RegisterLibFunc(&libCanvasFlush, initPtr, "plutobook_canvas_flush")
 	purego.RegisterLibFunc(&libCanvasFinish, initPtr, "plutobook_canvas_finish")
@@ -90,6 +94,8 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libSetHttpFollowRedirects, initPtr, "plutobook_set_http_follow_redirects")
 	purego.RegisterLibFunc(&libSetHttpMaxRedirects, initPtr, "plutobook_set_http_max_redirects")
 	purego.RegisterLibFunc(&libSetHttpTimeout, initPtr, "plutobook_set_http_timeout")
+	purego.RegisterLibFunc(&libSetCustomResourceFetcher, initPtr, "plutobook_set_custom_resource_fetcher")
+	purego.RegisterLibFunc(&libResourceDataCreate, initPtr, "plutobook_resource_data_create")
 }
 
 var (
@@ -101,12 +107,13 @@ var (
 	libSetHttpMaxRedirects    func(amount int32)
 	libSetHttpTimeout         func(amount int32)
 
-	libGetDocumentWidth  func(book uintptr) float32
-	libGetDocumentHeight func(book uintptr) float32
-	libLoadHtml          func(book uintptr, data uintptr, length int32, userStyle uintptr, userScript uintptr, baseUrl uintptr) bool
-	libLoadUrl           func(book uintptr, url uintptr, userStyle uintptr, userScript uintptr) bool
-	libWriteToPNG        func(book uintptr, file uintptr, width, height int32) bool
-	libWriteToPNGStream  func(book uintptr, callback uintptr, closure uintptr, width, height int32) bool
+	libGetDocumentWidth         func(book uintptr) float32
+	libGetDocumentHeight        func(book uintptr) float32
+	libLoadHtml                 func(book uintptr, data uintptr, length int32, userStyle uintptr, userScript uintptr, baseUrl uintptr) bool
+	libLoadUrl                  func(book uintptr, url uintptr, userStyle uintptr, userScript uintptr) bool
+	libWriteToPNG               func(book uintptr, file uintptr, width, height int32) bool
+	libWriteToPNGStream         func(book uintptr, callback uintptr, closure uintptr, width, height int32) bool
+	libSetCustomResourceFetcher func(book uintptr, callback uintptr, closure uintptr)
 
 	libCanvasDestroy      func(canvas uintptr)
 	libCanvasFlush        func(canvas uintptr)
@@ -122,12 +129,18 @@ var (
 	libCanvasSaveState    func(canvas uintptr)
 	libCanvasRestoreState func(canvas uintptr)
 
-	libImageCanvasCreate     func(width, height int32, format ImageFormat) uintptr
-	libImageCanvasGetFormat  func(canvas uintptr) ImageFormat
-	libImageCanvasGetWidth   func(canvas uintptr) int32
-	libImageCanvasGetHeight  func(canvas uintptr) int32
-	libImageCanvasGetStride  func(canvas uintptr) int32
-	libImageCanvasWriteToPNG func(canvas uintptr, file uintptr) bool
-	// libImageCanvasWriteToPNGSymbol uintptr
+	libImageCanvasCreate           func(width, height int32, format ImageFormat) uintptr
+	libImageCanvasGetFormat        func(canvas uintptr) ImageFormat
+	libImageCanvasGetWidth         func(canvas uintptr) int32
+	libImageCanvasGetHeight        func(canvas uintptr) int32
+	libImageCanvasGetStride        func(canvas uintptr) int32
+	libImageCanvasWriteToPNG       func(canvas uintptr, file uintptr) bool
 	libImageCanvasWriteToPNGStream func(canvas uintptr, callback uintptr, closure uintptr) bool
+
+	// libPDFCanvasCreate      func(filename string, size PageSize) uintptr
+	libPDFCanvasSetMetadata func(canvas uintptr, metadata PdfMetadata, value string)
+	// libPDFCanvasSetSize     func(canvas uintptr, size PageSize)
+	libPDFCanvasShowPage func(canvas uintptr)
+
+	libResourceDataCreate func(content uintptr, length uint32, mimeType uintptr, textEncoding uintptr) uintptr
 )

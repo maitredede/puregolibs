@@ -12,6 +12,9 @@ import (
 
 type Book struct {
 	ptr uintptr
+
+	fetcherClosure *ffi.Closure
+	fetcher        CustomResourceFetcher
 }
 
 func NewBook(pageSize PageSize, margins PageMargins, mediaType MediaType) (*Book, error) {
@@ -33,6 +36,11 @@ func (b *Book) Close() error {
 
 	if b.ptr == 0 {
 		return ErrBookIsClosed
+	}
+	if b.fetcherClosure != nil {
+		ffi.ClosureFree(b.fetcherClosure)
+		b.fetcherClosure = nil
+		b.fetcher = nil
 	}
 	libDestroy(uintptr(b.ptr))
 	b.ptr = 0
@@ -137,7 +145,44 @@ func (b *Book) SetCustomResourceFetcher(fetcher CustomResourceFetcher) error {
 	if b.ptr == 0 {
 		return ErrBookIsClosed
 	}
-	panic("TODO: SetCustomResourceFetcher")
+	if fetcher == nil {
+		if b.fetcherClosure != nil {
+			ffi.ClosureFree(b.fetcherClosure)
+			b.fetcherClosure = nil
+			b.fetcher = nil
+		}
+
+		libSetCustomResourceFetcher(b.ptr, 0, 0)
+		return nil
+	}
+
+	// allocate the closure function
+	var callback unsafe.Pointer
+	b.fetcherClosure = ffi.ClosureAlloc(unsafe.Sizeof(ffi.Closure{}), &callback)
+	if b.fetcherClosure == nil {
+		return errors.New("closure not allocated")
+	}
+
+	// describe the closure's signature
+	// plutobook_resource_data_t* (*plutobook_resource_fetch_callback_t)(void* closure, const char* url);
+	var cifCallback ffi.Cif
+	if status := ffi.PrepCif(&cifCallback, ffi.DefaultAbi, 2, &ffi.TypePointer, &ffi.TypePointer, &ffi.TypePointer); status != ffi.OK {
+		return fmt.Errorf("cif preparation failed: %v", status)
+	}
+
+	// fn will be called, then the closure gets invoked
+	fn := ffi.NewCallback(customResourceFetcherCallback)
+
+	// prepare the closure
+	if status := ffi.PrepClosureLoc(b.fetcherClosure, &cifCallback, fn, nil, callback); status != ffi.OK {
+		return fmt.Errorf("closure preparation failed: %v", status)
+	}
+	b.fetcher = fetcher
+
+	// pbClosure := uintptr(unsafe.Pointer(&fetcher))
+	pbClosure := uintptr(unsafe.Pointer(b))
+	libSetCustomResourceFetcher(b.ptr, uintptr(callback), pbClosure)
+	return nil
 }
 
 func (b *Book) GetDocumentWidth() float32 {

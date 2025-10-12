@@ -94,7 +94,7 @@ func (c *ImageCanvas) WriteToPNGStream(output io.Writer) error {
 	// describe the closure's signature
 	// plutobook_stream_status_t (*plutobook_stream_write_callback_t)(void* closure, const char* data, unsigned int length);
 	var cifCallback ffi.Cif
-	if status := ffi.PrepCif(&cifCallback, ffi.DefaultAbi, 3, &ffi.TypeSint32, &ffi.TypePointer, &ffi.TypePointer, &ffi.TypeSint32); status != ffi.OK {
+	if status := ffi.PrepCif(&cifCallback, ffi.DefaultAbi, 3, &ffi.TypeSint32, &ffi.TypePointer, &ffi.TypePointer, &ffi.TypeUint32); status != ffi.OK {
 		return fmt.Errorf("cif preparation failed: %v", status)
 	}
 
@@ -105,13 +105,12 @@ func (c *ImageCanvas) WriteToPNGStream(output io.Writer) error {
 		output: output,
 		err:    nil,
 	}
-	userData := unsafe.Pointer(stream)
 	// prepare the closure
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, nil, callback); status != ffi.OK {
 		return fmt.Errorf("closure preparation failed: %v", status)
 	}
 
-	isOk := libImageCanvasWriteToPNGStream(c.ptr, uintptr(callback), 0)
+	isOk := libImageCanvasWriteToPNGStream(c.ptr, uintptr(callback), uintptr(unsafe.Pointer(stream)))
 
 	if !isOk {
 		if stream.err != nil {

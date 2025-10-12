@@ -128,6 +128,11 @@ func TestBookHtmlSampleToPNGStream(t *testing.T) {
 	}
 	defer b.Close()
 
+	if err := b.SetCustomResourceFetcher(DefaultHttpLoader); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
 	if err := b.LoadHTML(basicHtml, "", "", ""); err != nil {
 		t.Fatal(err)
 	}
@@ -168,6 +173,11 @@ func TestBookUrlToPngStream(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer b.Close()
+
+	if err := b.SetCustomResourceFetcher(DefaultHttpLoader); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
 
 	if err := b.LoadURL("https://github.com", "", ""); err != nil {
 		t.Fatal(err)
