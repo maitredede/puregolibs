@@ -18,11 +18,14 @@ func main() {
 	flag.Parse()
 
 	// Only one context should be needed for an application.  It should always be closed.
-	ctx := gousb.NewContext()
+	ctx, err := gousb.Init()
+	if err != nil {
+		log.Fatalf("ctx: %s", err)
+	}
 	defer ctx.Close()
 
 	// Debugging can be turned on; this shows some of the inner workings of the libusb package.
-	ctx.Debug(debug)
+	ctx.SetDebug(gousb.LogLevel(debug))
 
 	// OpenDevices is used to find the devices to open.
 	devs, err := ctx.OpenDevices(func(desc *gousb.DeviceDesc) bool {
