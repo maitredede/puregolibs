@@ -40,3 +40,13 @@ func (e *InvalidContextError) Error() string {
 }
 
 var ErrInvalidContext error = &InvalidContextError{msg: "invalid context"}
+
+type InvalidDeviceError struct {
+	msg string
+}
+
+func (e *InvalidDeviceError) Error() string {
+	return e.msg
+}
+
+var ErrInvalidDevice error = &InvalidDeviceError{msg: "invalid device"}

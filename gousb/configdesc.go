@@ -1,6 +1,53 @@
 package gousb
 
-import "fmt"
+import (
+	"fmt"
+	"unsafe"
+)
+
+type libusbConfigDescriptor struct {
+	/** Size of this descriptor (in bytes) */
+	bLength uint8
+
+	/** Descriptor type. Will have value
+	 * \ref libusb_descriptor_type::LIBUSB_DT_CONFIG LIBUSB_DT_CONFIG
+	 * in this context. */
+	bDescriptorType uint8
+
+	/** Total length of data returned for this configuration */
+	wTotalLength uint16
+
+	/** Number of interfaces supported by this configuration */
+	bNumInterfaces uint8
+
+	/** Identifier value for this configuration */
+	bConfigurationValue uint8
+
+	/** Index of string descriptor describing this configuration */
+	iConfiguration uint8
+
+	/** Configuration characteristics */
+	bmAttributes uint8
+
+	/** Maximum power consumption of the USB device from this bus in this
+	 * configuration when the device is fully operation. Expressed in units
+	 * of 2 mA when the device is operating in high-speed mode and in units
+	 * of 8 mA when the device is operating in super-speed mode. */
+	MaxPower uint8
+
+	/** Array of interfaces supported by this configuration. The length of
+	 * this array is determined by the bNumInterfaces field. */
+	//const struct libusb_interface *interface;
+	iface *libusbInterface
+
+	/** Extra descriptors. If libusb encounters unknown configuration
+	 * descriptors, it will store them here, should you wish to parse them. */
+	//const unsigned char *extra;
+	extra unsafe.Pointer
+
+	/** Length of the extra descriptors, in bytes. Must be non-negative. */
+	extra_length int32
+}
 
 // ConfigDesc contains the information about a USB device configuration,
 // extracted from the device descriptor.

@@ -44,3 +44,21 @@ func TestLocales(t *testing.T) {
 	}
 
 }
+
+func TestContextOpenDevices(t *testing.T) {
+	ctx, err := Init()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ctx.Close()
+	ctx.SetDebug(LogLevelDebug)
+
+	devices, err := ctx.OpenDevices(func(desc *DeviceDesc) bool {
+		return true
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("opened %d devices", len(devices))
+}

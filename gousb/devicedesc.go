@@ -5,6 +5,55 @@ import (
 	"sort"
 )
 
+type libusbDeviceDescriptor struct {
+	/** Size of this descriptor (in bytes) */
+	bLength uint8
+
+	/** Descriptor type. Will have value
+	 * \ref libusb_descriptor_type::LIBUSB_DT_DEVICE LIBUSB_DT_DEVICE in this
+	 * context. */
+	bDescriptorType uint8
+
+	/** USB specification release number in binary-coded decimal. A value of
+	 * 0x0200 indicates USB 2.0, 0x0110 indicates USB 1.1, etc. */
+	bcdUSB uint16
+
+	/** USB-IF class code for the device. See \ref libusb_class_code. */
+	bDeviceClass uint8
+
+	/** USB-IF subclass code for the device, qualified by the bDeviceClass
+	 * value */
+	bDeviceSubClass uint8
+
+	/** USB-IF protocol code for the device, qualified by the bDeviceClass and
+	 * bDeviceSubClass values */
+	bDeviceProtocol uint8
+
+	/** Maximum packet size for endpoint 0 */
+	bMaxPacketSize0 uint8
+
+	/** USB-IF vendor ID */
+	idVendor uint16
+
+	/** USB-IF product ID */
+	idProduct uint16
+
+	/** Device release number in binary-coded decimal */
+	bcdDevice uint16
+
+	/** Index of string descriptor describing manufacturer */
+	iManufacturer uint8
+
+	/** Index of string descriptor describing product */
+	iProduct uint8
+
+	/** Index of string descriptor containing device serial number */
+	iSerialNumber uint8
+
+	/** Number of possible configurations */
+	bNumConfigurations uint8
+}
+
 // DeviceDesc is a representation of a USB device descriptor.
 type DeviceDesc struct {
 	// The bus on which the device was detected
