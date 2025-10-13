@@ -5,33 +5,59 @@ import (
 	"log"
 	"sync"
 	"unsafe"
+
+	"github.com/jupiterrider/ffi"
+	"github.com/maitredede/puregolibs/strings"
 )
 
 type libusbContext unsafe.Pointer
+
+var (
+	contextMap    map[libusbContext]*Context = make(map[libusbContext]*Context)
+	contextMapLck sync.Mutex
+)
 
 type Context struct {
 	ptr      libusbContext
 	ptrValid bool
 
+	disposables []func()
+
 	mu      sync.Mutex
 	devices map[*Device]bool
 }
 
-func Init() (*Context, error) {
+func Init(options ...InitOption) (*Context, error) {
 	libInit()
 
 	var ptr libusbContext
-	ret := libusbInit(&ptr)
+	var ret int32
+	if len(options) == 0 {
+		ret = libusbInit(&ptr)
+	} else {
+		lst := make([]NativeLibusbInitOption, len(options))
+		for i := 0; i < len(options); i++ {
+			lst[i] = options[i].build()
+		}
+		argOptions := (*NativeLibusbInitOption)(unsafe.Pointer(&lst[0]))
+		ret = libusbInitContext(&ptr, argOptions, int32(len(options)))
+	}
 	err := errorFromRet(ret)
 	if err != nil {
 		return nil, err
 	}
+
+	contextMapLck.Lock()
+	defer contextMapLck.Unlock()
 
 	ctx := &Context{
 		ptr:      ptr,
 		ptrValid: true,
 		devices:  make(map[*Device]bool),
 	}
+
+	contextMap[ptr] = ctx
+
 	return ctx, nil
 }
 
@@ -46,6 +72,15 @@ func (c *Context) Close() error {
 	}
 	libusbExit(c.ptr)
 	c.ptrValid = false
+	contextMapLck.Lock()
+	defer contextMapLck.Unlock()
+
+	delete(contextMap, c.ptr)
+
+	for _, d := range c.disposables {
+		d()
+	}
+
 	return nil
 }
 
@@ -106,7 +141,6 @@ func (c *Context) OpenDevices(opener func(desc *DeviceDesc) bool) ([]*Device, er
 	var retDevices []*Device
 	for _, dev := range devs {
 		desc, err := c.getDeviceDesc(dev)
-		// defer c.libusb.dereference(dev)
 		defer libusbUnrefDevice(dev)
 		if err != nil {
 			reterr = err
@@ -117,11 +151,6 @@ func (c *Context) OpenDevices(opener func(desc *DeviceDesc) bool) ([]*Device, er
 			continue
 		}
 
-		//handle, err := c.libusb.open(dev)
-		// if err != nil {
-		// 	reterr = err
-		// 	continue
-		// }
 		var handle libusbDeviceHandle
 		ret := libusbOpen(dev, &handle)
 		if err := errorFromRet(ret); err != nil {
@@ -197,12 +226,7 @@ func (c *Context) getDeviceDesc(d libusbDevice) (*DeviceDesc, error) {
 		}
 
 		ifaces := unsafe.Slice(cfg.iface, cfg.bNumInterfaces)
-		// // var ifaces []C.struct_libusb_interface
-		// *(*reflect.SliceHeader)(unsafe.Pointer(&ifaces)) = reflect.SliceHeader{
-		// 	Data: uintptr(unsafe.Pointer(cfg.iface)),
-		// 	Len:  int(cfg.bNumInterfaces),
-		// 	Cap:  int(cfg.bNumInterfaces),
-		// }
+
 		c.Interfaces = make([]InterfaceDesc, 0, len(ifaces))
 		// a map of interface numbers to a set of alternate settings numbers
 		hasIntf := make(map[int]map[int]bool)
@@ -212,12 +236,7 @@ func (c *Context) getDeviceDesc(d libusbDevice) (*DeviceDesc, error) {
 			}
 
 			alts := unsafe.Slice(iface.altsetting, iface.numAltsetting)
-			// var alts []C.struct_libusb_interface_descriptor
-			// *(*reflect.SliceHeader)(unsafe.Pointer(&alts)) = reflect.SliceHeader{
-			// 	Data: uintptr(unsafe.Pointer(iface.altsetting)),
-			// 	Len:  int(iface.num_altsetting),
-			// 	Cap:  int(iface.num_altsetting),
-			// }
+
 			descs := make([]InterfaceSetting, 0, len(alts))
 			for _, alt := range alts {
 				i := InterfaceSetting{
@@ -239,12 +258,6 @@ func (c *Context) getDeviceDesc(d libusbDevice) (*DeviceDesc, error) {
 				hasIntf[i.Number][i.Alternate] = true
 
 				ends := unsafe.Slice(alt.endpoint, alt.bNumEndpoints)
-				// var ends []C.struct_libusb_endpoint_descriptor
-				// *(*reflect.SliceHeader)(unsafe.Pointer(&ends)) = reflect.SliceHeader{
-				// 	Data: uintptr(unsafe.Pointer(alt.endpoint)),
-				// 	Len:  int(alt.bNumEndpoints),
-				// 	Cap:  int(alt.bNumEndpoints),
-				// }
 				i.Endpoints = make(map[EndpointAddress]EndpointDesc, len(ends))
 				for _, end := range ends {
 					// epi := libusbEndpoint(end).endpointDesc(dev)
@@ -271,4 +284,55 @@ func (c *Context) closeDev(d *Device) {
 	defer c.mu.Unlock()
 	libusbClose(d.handle)
 	delete(c.devices, d)
+}
+
+func (c *Context) SetOptionLogLevel(level LogLevel) error {
+	ret := libusbSetOption(c.ptr, optionLogLevel, level)
+	return errorFromRet(ret)
+}
+
+func (c *Context) SetOptionLogCallback(logCB LogCallback) error {
+
+	// allocate the closure function
+	var callback unsafe.Pointer
+	closure := ffi.ClosureAlloc(unsafe.Sizeof(ffi.Closure{}), &callback)
+	if closure == nil {
+		panic("closure alloc failed")
+	}
+	c.disposables = append(c.disposables, func() { ffi.ClosureFree(closure) })
+
+	// describe the closure's signature
+	var cifCallback ffi.Cif
+	if status := ffi.PrepCif(&cifCallback, ffi.DefaultAbi, 3, &ffi.TypeVoid, &ffi.TypePointer, &ffi.TypeSint32, &ffi.TypePointer); status != ffi.OK {
+		panic(status)
+	}
+	fn := ffi.NewCallback(func(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
+		argsArr := unsafe.Slice(args, cif.NArgs)
+
+		ctxPtr := *(*libusbContext)(argsArr[0])
+		level := *(*LogLevel)(argsArr[1])
+		strPtr := *(*unsafe.Pointer)(argsArr[2])
+
+		ctx := func(ctxPtr libusbContext) *Context {
+			contextMapLck.Lock()
+			defer contextMapLck.Unlock()
+
+			c, ok := contextMap[ctxPtr]
+			if ok {
+				return c
+			}
+			return nil
+		}(ctxPtr)
+		str := strings.GoString(uintptr(strPtr))
+
+		logCB(ctx, level, str)
+		return 0
+	})
+	// prepare the closure
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, nil, callback); status != ffi.OK {
+		panic(status)
+	}
+
+	ret := libusbSetOptionPtr(c.ptr, optionLogCB, unsafe.Pointer(callback))
+	return errorFromRet(ret)
 }

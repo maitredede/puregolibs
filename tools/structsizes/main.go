@@ -14,5 +14,5 @@ func main() {
 	dumpNfc()
 	dumpSane()
 	dumpCec()
-
+	dumpUsb()
 }

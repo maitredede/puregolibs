@@ -1,7 +1,9 @@
 package gousb
 
 import (
+	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -42,7 +44,31 @@ func TestLocales(t *testing.T) {
 			t.Fail()
 		}
 	}
+}
 
+func TestContextSetOption(t *testing.T) {
+	ctx, err := Init()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ctx.Close()
+
+	if err := ctx.SetOptionLogLevel(LogLevelDebug); err != nil {
+		t.Fatal(err)
+	}
+	if err := ctx.SetOptionLogCallback(func(ctx *Context, level LogLevel, str string) {
+		msg := strings.TrimRightFunc(str, unicode.IsSpace)
+		t.Logf("logcb: [%s] %s", level, msg)
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = ctx.OpenDevices(func(desc *DeviceDesc) bool {
+		return false
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestContextOpenDevices(t *testing.T) {
@@ -51,14 +77,20 @@ func TestContextOpenDevices(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer ctx.Close()
-	ctx.SetDebug(LogLevelDebug)
 
 	devices, err := ctx.OpenDevices(func(desc *DeviceDesc) bool {
 		return true
 	})
 	if err != nil {
-		t.Fatal(err)
+		t.Log(err)
+		t.Fail()
 	}
 
 	t.Logf("opened %d devices", len(devices))
+	for _, d := range devices {
+
+		t.Logf(" vid=%s pid=%s", d.Desc.Vendor, d.Desc.Product)
+
+		d.Close()
+	}
 }

@@ -2,5 +2,5 @@
 
 package main
 
-// #cgo LDFLAGS: -lnfc -lfreefare -lsane -lcec
+// #cgo LDFLAGS: -lnfc -lfreefare -lsane -lcec -lusb-1.0
 import "C"

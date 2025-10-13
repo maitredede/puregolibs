@@ -25,7 +25,9 @@ func (i *Interface) Close() {
 	if i.config == nil {
 		return
 	}
-	i.config.dev.ctx.libusb.release(i.config.dev.handle, uint8(i.Setting.Number))
+	//i.config.dev.ctx.libusb.release(i.config.dev.handle, uint8(i.Setting.Number))
+	libusbReleaseInterface(i.config.dev.handle, int32(i.Setting.Number))
+
 	i.config.mu.Lock()
 	defer i.config.mu.Unlock()
 	delete(i.config.claimed, i.Setting.Number)

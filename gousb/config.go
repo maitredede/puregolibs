@@ -69,14 +69,19 @@ func (c *Config) Interface(num, alt int) (*Interface, error) {
 	}
 
 	// Claim the interface
-	if err := c.dev.ctx.libusb.claim(c.dev.handle, uint8(num)); err != nil {
+	// if err := c.dev.ctx.libusb.claim(c.dev.handle, uint8(num)); err != nil {
+	ret := libusbClaimInterface(c.dev.handle, int32(num))
+	if err := errorFromRet(ret); err != nil {
 		return nil, fmt.Errorf("failed to claim interface %d on %s: %v", num, c, err)
 	}
 
 	// Select an alternate setting if needed (device has multiple alternate settings).
 	if len(intf.AltSettings) > 1 {
-		if err := c.dev.ctx.libusb.setAlt(c.dev.handle, uint8(num), uint8(alt)); err != nil {
-			c.dev.ctx.libusb.release(c.dev.handle, uint8(num))
+		//if err := c.dev.ctx.libusb.setAlt(c.dev.handle, uint8(num), uint8(alt)); err != nil {
+		ret := libusbSetInterfaceAltSetting(c.dev.handle, int32(num), int32(alt))
+		if err := errorFromRet(ret); err != nil {
+			// c.dev.ctx.libusb.release(c.dev.handle, uint8(num))
+			libusbReleaseInterface(c.dev.handle, int32(num))
 			return nil, fmt.Errorf("failed to set alternate config %d on interface %d of %s: %v", alt, num, c, err)
 		}
 	}

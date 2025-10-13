@@ -26,6 +26,6 @@ func (s BCD) String() string {
 	return fmt.Sprintf("%d.%02d", s.Major(), s.Minor())
 }
 
-func Version(major, minor uint8) BCD {
+func VersionToBCD(major, minor uint8) BCD {
 	return (BCD(major)/10)<<12 | (BCD(major)%10)<<8 | (BCD(minor)/10)<<4 | BCD(minor)%10
 }
