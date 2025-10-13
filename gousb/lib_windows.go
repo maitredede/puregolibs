@@ -21,7 +21,8 @@ func libInit() {
 		var err error
 		theDLL, err = syscall.LoadDLL(theFile)
 		if err != nil {
-			panic(fmt.Errorf("error loading lib '%s': %w", theFile, err))
+			initError = fmt.Errorf("error loading lib '%s': %w", theFile, err)
+			panic(initError)
 		} else {
 			initPtr = uintptr(theDLL.Handle)
 		}
