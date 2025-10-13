@@ -1,4 +1,4 @@
-//go:build cgo && !no_pkgconfig && !nopkgconfig
+//go:build linux && cgo && !no_pkgconfig && !nopkgconfig
 
 package main
 
