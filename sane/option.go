@@ -133,23 +133,23 @@ func (d OptionDescriptor) GetValue() (any, error) {
 	switch d.Type {
 	case TypeBool:
 		if d.BinSize != 4 {
-			panic("FIXME")
+			panic(fmt.Sprintf("FIXME: OptionDescriptor.GetValue bool binsize=%d", d.BinSize))
 		}
 		return d.GetValueBool()
 	case TypeInt:
 		if d.BinSize != 4 {
-			panic("FIXME")
+			panic(fmt.Sprintf("FIXME: OptionDescriptor.GetValue int binsize=%d", d.BinSize))
 		}
 		return d.GetValueInt()
 	case TypeFloat:
 		if d.BinSize != 4 {
-			panic("FIXME")
+			panic(fmt.Sprintf("FIXME: OptionDescriptor.GetValue float binsize=%d", d.BinSize))
 		}
 		return d.GetValueFloat()
 	case TypeString:
 		return d.GetValueString()
 	}
-	panic("FIXME")
+	panic(fmt.Sprintf("FIXME: OptionDescriptor.GetValue unknown(%s) binsize=%d", d.Type, d.BinSize))
 }
 
 func (d OptionDescriptor) GetValueBool() (bool, error) {
@@ -247,7 +247,7 @@ func (d OptionDescriptor) SetValue(value any) (Info, error) {
 	switch d.Type {
 	case TypeBool:
 		if d.BinSize != 4 {
-			panic("FIXME")
+			panic(fmt.Sprintf("FIXME: OptionDescriptor.SetValue bool binsize=%d", d.BinSize))
 		}
 		b, ok := value.(bool)
 		if !ok {
@@ -256,7 +256,7 @@ func (d OptionDescriptor) SetValue(value any) (Info, error) {
 		return d.SetValueBool(b)
 	case TypeInt:
 		if d.BinSize != 4 {
-			panic("FIXME")
+			panic(fmt.Sprintf("FIXME: OptionDescriptor.SetValue int binsize=%d", d.BinSize))
 		}
 		i, ok := value.(int)
 		if !ok {
@@ -265,7 +265,7 @@ func (d OptionDescriptor) SetValue(value any) (Info, error) {
 		return d.SetValueInt(i)
 	case TypeFloat:
 		if d.BinSize != 4 {
-			panic("FIXME")
+			panic(fmt.Sprintf("FIXME: OptionDescriptor.SetValue float binsize=%d", d.BinSize))
 		}
 		f, ok := value.(float64)
 		if !ok {
@@ -279,7 +279,7 @@ func (d OptionDescriptor) SetValue(value any) (Info, error) {
 		}
 		return d.SetValueString(s)
 	}
-	panic("FIXME")
+	panic(fmt.Sprintf("FIXME: OptionDescriptor.SetValue unknown(%s) binsize=%d", d.Type, d.BinSize))
 }
 
 func (h *Handle) SetOptionValue(name string, value any) (Info, error) {
