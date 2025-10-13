@@ -23,7 +23,7 @@ var _ canvasInterface = (*PDFCanvas)(nil)
 
 func (c *PDFCanvas) SetMetadata(metadata PdfMetadata, value string) error {
 	libInit()
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libPDFCanvasSetMetadata(c.ptr, metadata, value)
@@ -32,7 +32,7 @@ func (c *PDFCanvas) SetMetadata(metadata PdfMetadata, value string) error {
 
 // func (c *PDFCanvas) SetSize(size PageSize) error {
 // 	libInit()
-// 	if c.ptr == 0 {
+// 	if c.ptr == nil {
 // 		return ErrCanvasIsClosed
 // 	}
 // 	libPDFCanvasSetSize(c.ptr, size)
@@ -41,7 +41,7 @@ func (c *PDFCanvas) SetMetadata(metadata PdfMetadata, value string) error {
 
 func (c *PDFCanvas) ShowPage() error {
 	libInit()
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libPDFCanvasShowPage(c.ptr)

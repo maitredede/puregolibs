@@ -13,6 +13,8 @@ import (
 	"github.com/maitredede/puregolibs/strings"
 )
 
+type resourceDataPtr unsafe.Pointer
+
 type ResourceData struct {
 	Mime         string
 	Bin          []byte
@@ -25,7 +27,7 @@ func customResourceFetcherCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsaf
 	argArr := unsafe.Slice(args, cif.NArgs)
 	if cif.NArgs < 2 {
 		slog.Error("cif.NArgs < 2")
-		*(*unsafe.Pointer)(ret) = unsafe.Pointer(uintptr(0))
+		*(*resourceDataPtr)(ret) = nil
 		return 0
 	}
 	closureArgPtr := argArr[0]
@@ -42,16 +44,16 @@ func customResourceFetcherCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsaf
 	data, err := book.fetcher(url)
 	if err != nil {
 		slog.Error(err.Error())
-		*(*unsafe.Pointer)(ret) = unsafe.Pointer(uintptr(0))
+		*(*resourceDataPtr)(ret) = nil
 		return 0
 	}
 
-	cData := unsafe.Pointer(&data.Bin[0])
+	cData := binPtr(&data.Bin[0])
 	cLen := uint32(len(data.Bin))
 	cMime := strings.CString(data.Mime)
 	cEncoding := strings.CString(data.TextEncoding)
-	resourcePtr := libResourceDataCreate(uintptr(cData), cLen, uintptr(unsafe.Pointer(cMime)), uintptr(unsafe.Pointer(cEncoding)))
-	*(*unsafe.Pointer)(ret) = unsafe.Pointer(resourcePtr)
+	resourcePtr := libResourceDataCreate(cData, cLen, stringPtr(cMime), stringPtr(cEncoding))
+	*(*resourceDataPtr)(ret) = resourcePtr
 
 	return 0
 }

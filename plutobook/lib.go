@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"sync"
+	"unsafe"
 
 	"github.com/ebitengine/purego"
 )
@@ -96,7 +97,12 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libSetHttpTimeout, initPtr, "plutobook_set_http_timeout")
 	purego.RegisterLibFunc(&libSetCustomResourceFetcher, initPtr, "plutobook_set_custom_resource_fetcher")
 	purego.RegisterLibFunc(&libResourceDataCreate, initPtr, "plutobook_resource_data_create")
+	purego.RegisterLibFunc(&libResourceDataDestroy, initPtr, "plutobook_resource_data_destroy")
+	purego.RegisterLibFunc(&libResourceDataGetReferenceCount, initPtr, "plutobook_resource_data_get_reference_count")
 }
+
+type stringPtr unsafe.Pointer
+type binPtr unsafe.Pointer
 
 var (
 	libSetSSLCaInfo           func(path string)
@@ -107,40 +113,48 @@ var (
 	libSetHttpMaxRedirects    func(amount int32)
 	libSetHttpTimeout         func(amount int32)
 
-	libGetDocumentWidth         func(book uintptr) float32
-	libGetDocumentHeight        func(book uintptr) float32
-	libLoadHtml                 func(book uintptr, data uintptr, length int32, userStyle uintptr, userScript uintptr, baseUrl uintptr) bool
-	libLoadUrl                  func(book uintptr, url uintptr, userStyle uintptr, userScript uintptr) bool
-	libWriteToPNG               func(book uintptr, file uintptr, width, height int32) bool
-	libWriteToPNGStream         func(book uintptr, callback uintptr, closure uintptr, width, height int32) bool
-	libSetCustomResourceFetcher func(book uintptr, callback uintptr, closure uintptr)
+	libCreate                   func(pageSize PageSize, margins PageMargins, mediaType MediaType) bookPtr
+	libDestroy                  func(book bookPtr)
+	libGetPageSize              func(book bookPtr) PageSize
+	libGetPageSizeAt            func(book bookPtr, index int) PageSize
+	libGetDocumentWidth         func(book bookPtr) float32
+	libGetDocumentHeight        func(book bookPtr) float32
+	libLoadHtml                 func(book bookPtr, data binPtr, length int32, userStyle stringPtr, userScript stringPtr, baseUrl stringPtr) bool
+	libLoadUrl                  func(book bookPtr, url stringPtr, userStyle stringPtr, userScript stringPtr) bool
+	libWriteToPNG               func(book bookPtr, file stringPtr, width, height int32) bool
+	libWriteToPNGStream         func(book bookPtr, callback unsafe.Pointer, closure unsafe.Pointer, width, height int32) bool
+	libSetCustomResourceFetcher func(book bookPtr, callback unsafe.Pointer, closure unsafe.Pointer)
+	libGetMediaType             func(book bookPtr) int32
+	libGetPageMargins           func(book bookPtr) PageMargins
 
-	libCanvasDestroy      func(canvas uintptr)
-	libCanvasFlush        func(canvas uintptr)
-	libCanvasFinish       func(canvas uintptr)
-	libCanvasTranslate    func(canvas uintptr, tx, ty float32)
-	libCanvasScale        func(canvas uintptr, sx, sy float32)
-	libCanvasRotate       func(canvas uintptr, angle float32)
-	libCanvasTransform    func(canvas uintptr, a, b, c, d, e, f float32)
-	libCanvasSetMatrix    func(canvas uintptr, a, b, c, d, e, f float32)
-	libCanvasResetMatrix  func(canvas uintptr)
-	libCanvasClipRect     func(canvas uintptr, x, y, width, height float32)
-	libCanvasClearSurface func(canvas uintptr, r, g, b, a float32)
-	libCanvasSaveState    func(canvas uintptr)
-	libCanvasRestoreState func(canvas uintptr)
+	libCanvasDestroy      func(canvas canvasPtr)
+	libCanvasFlush        func(canvas canvasPtr)
+	libCanvasFinish       func(canvas canvasPtr)
+	libCanvasTranslate    func(canvas canvasPtr, tx, ty float32)
+	libCanvasScale        func(canvas canvasPtr, sx, sy float32)
+	libCanvasRotate       func(canvas canvasPtr, angle float32)
+	libCanvasTransform    func(canvas canvasPtr, a, b, c, d, e, f float32)
+	libCanvasSetMatrix    func(canvas canvasPtr, a, b, c, d, e, f float32)
+	libCanvasResetMatrix  func(canvas canvasPtr)
+	libCanvasClipRect     func(canvas canvasPtr, x, y, width, height float32)
+	libCanvasClearSurface func(canvas canvasPtr, r, g, b, a float32)
+	libCanvasSaveState    func(canvas canvasPtr)
+	libCanvasRestoreState func(canvas canvasPtr)
 
-	libImageCanvasCreate           func(width, height int32, format ImageFormat) uintptr
-	libImageCanvasGetFormat        func(canvas uintptr) ImageFormat
-	libImageCanvasGetWidth         func(canvas uintptr) int32
-	libImageCanvasGetHeight        func(canvas uintptr) int32
-	libImageCanvasGetStride        func(canvas uintptr) int32
-	libImageCanvasWriteToPNG       func(canvas uintptr, file uintptr) bool
-	libImageCanvasWriteToPNGStream func(canvas uintptr, callback uintptr, closure uintptr) bool
+	libImageCanvasCreate           func(width, height int32, format ImageFormat) canvasPtr
+	libImageCanvasGetFormat        func(canvas canvasPtr) ImageFormat
+	libImageCanvasGetWidth         func(canvas canvasPtr) int32
+	libImageCanvasGetHeight        func(canvas canvasPtr) int32
+	libImageCanvasGetStride        func(canvas canvasPtr) int32
+	libImageCanvasWriteToPNG       func(canvas canvasPtr, file stringPtr) bool
+	libImageCanvasWriteToPNGStream func(canvas canvasPtr, callback unsafe.Pointer, closure unsafe.Pointer) bool
 
-	// libPDFCanvasCreate      func(filename string, size PageSize) uintptr
-	libPDFCanvasSetMetadata func(canvas uintptr, metadata PdfMetadata, value string)
-	// libPDFCanvasSetSize     func(canvas uintptr, size PageSize)
-	libPDFCanvasShowPage func(canvas uintptr)
+	// libPDFCanvasCreate      func(filename string, size PageSize) canvasPtr
+	libPDFCanvasSetMetadata func(canvas canvasPtr, metadata PdfMetadata, value string)
+	// libPDFCanvasSetSize     func(canvas canvasPtr, size PageSize)
+	libPDFCanvasShowPage func(canvas canvasPtr)
 
-	libResourceDataCreate func(content uintptr, length uint32, mimeType uintptr, textEncoding uintptr) uintptr
+	libResourceDataCreate            func(content binPtr, length uint32, mimeType stringPtr, textEncoding stringPtr) resourceDataPtr
+	libResourceDataDestroy           func(resource resourceDataPtr)
+	libResourceDataGetReferenceCount func(resource resourceDataPtr) uint32
 )

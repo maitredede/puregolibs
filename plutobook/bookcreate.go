@@ -6,10 +6,6 @@ import (
 	"github.com/jupiterrider/ffi"
 )
 
-var (
-	libCreate func(pageSize PageSize, margins PageMargins, mediaType MediaType) uintptr
-)
-
 func registerFFICreate() {
 	libCreateSym := mustGetSymbol("plutobook_create")
 
@@ -23,8 +19,8 @@ func registerFFICreate() {
 		panic("plutobook_create cif prep is not OK")
 	}
 
-	libCreate = func(pageSize PageSize, margins PageMargins, mediaType MediaType) uintptr {
-		var ret uintptr
+	libCreate = func(pageSize PageSize, margins PageMargins, mediaType MediaType) bookPtr {
+		var ret bookPtr
 		args := []unsafe.Pointer{
 			unsafe.Pointer(&pageSize),
 			unsafe.Pointer(&margins),

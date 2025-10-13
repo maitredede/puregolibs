@@ -19,7 +19,7 @@ var _ canvasInterface = (*ImageCanvas)(nil)
 func CreateImageCanvas(width, height int, imageFormat ImageFormat) (*ImageCanvas, error) {
 	libInit()
 	ptr := libImageCanvasCreate(int32(width), int32(height), imageFormat)
-	if ptr == 0 {
+	if ptr == nil {
 		msg := libGetErrorMessage()
 		return nil, fmt.Errorf("image canvas create failed: %v", msg)
 	}
@@ -33,7 +33,7 @@ func CreateImageCanvas(width, height int, imageFormat ImageFormat) (*ImageCanvas
 
 func (c *ImageCanvas) GetFormat() (ImageFormat, error) {
 	libInit()
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ImageFormat(0), ErrCanvasIsClosed
 	}
 	f := libImageCanvasGetFormat(c.ptr)
@@ -42,7 +42,7 @@ func (c *ImageCanvas) GetFormat() (ImageFormat, error) {
 
 func (c *ImageCanvas) GetWidth() int {
 	libInit()
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return 0
 	}
 	return int(libImageCanvasGetWidth(c.ptr))
@@ -50,7 +50,7 @@ func (c *ImageCanvas) GetWidth() int {
 
 func (c *ImageCanvas) GetHeight() int {
 	libInit()
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return 0
 	}
 	return int(libImageCanvasGetHeight(c.ptr))
@@ -58,7 +58,7 @@ func (c *ImageCanvas) GetHeight() int {
 
 func (c *ImageCanvas) GetStride() int {
 	libInit()
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return 0
 	}
 	return int(libImageCanvasGetStride(c.ptr))
@@ -66,11 +66,11 @@ func (c *ImageCanvas) GetStride() int {
 
 func (c *ImageCanvas) WriteToPNG(file string) error {
 	libInit()
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	cFile := strings.CString(file)
-	ret := libImageCanvasWriteToPNG(c.ptr, uintptr(unsafe.Pointer(cFile)))
+	ret := libImageCanvasWriteToPNG(c.ptr, stringPtr(cFile))
 	if !ret {
 		msg := libGetErrorMessage()
 		return fmt.Errorf("image canvas png write failed: %v", msg)
@@ -80,7 +80,7 @@ func (c *ImageCanvas) WriteToPNG(file string) error {
 
 func (c *ImageCanvas) WriteToPNGStream(output io.Writer) error {
 	libInit()
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	// allocate the closure function
@@ -110,7 +110,7 @@ func (c *ImageCanvas) WriteToPNGStream(output io.Writer) error {
 		return fmt.Errorf("closure preparation failed: %v", status)
 	}
 
-	isOk := libImageCanvasWriteToPNGStream(c.ptr, uintptr(callback), uintptr(unsafe.Pointer(stream)))
+	isOk := libImageCanvasWriteToPNGStream(c.ptr, callback, unsafe.Pointer(stream))
 
 	if !isOk {
 		if stream.err != nil {

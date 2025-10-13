@@ -10,8 +10,10 @@ import (
 	"github.com/maitredede/puregolibs/strings"
 )
 
+type bookPtr unsafe.Pointer
+
 type Book struct {
-	ptr uintptr
+	ptr bookPtr
 
 	fetcherClosure *ffi.Closure
 	fetcher        CustomResourceFetcher
@@ -21,7 +23,7 @@ func NewBook(pageSize PageSize, margins PageMargins, mediaType MediaType) (*Book
 	libInit()
 
 	ptr := libCreate(pageSize, margins, mediaType)
-	if ptr == 0 {
+	if ptr == nil {
 		msg := libGetErrorMessage()
 		return nil, fmt.Errorf("book creation error: %v", msg)
 	}
@@ -34,7 +36,7 @@ func NewBook(pageSize PageSize, margins PageMargins, mediaType MediaType) (*Book
 func (b *Book) Close() error {
 	libInit()
 
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 	if b.fetcherClosure != nil {
@@ -42,14 +44,14 @@ func (b *Book) Close() error {
 		b.fetcherClosure = nil
 		b.fetcher = nil
 	}
-	libDestroy(uintptr(b.ptr))
-	b.ptr = 0
+	libDestroy(b.ptr)
+	b.ptr = nil
 	return nil
 }
 
 func (b *Book) GetPageSize() PageSize {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return PageSize{}
 	}
 	return libGetPageSize(b.ptr)
@@ -57,7 +59,7 @@ func (b *Book) GetPageSize() PageSize {
 
 func (b *Book) GetPageSizeAt(index int) PageSize {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return PageSize{}
 	}
 	return libGetPageSizeAt(b.ptr, index)
@@ -65,7 +67,7 @@ func (b *Book) GetPageSizeAt(index int) PageSize {
 
 func (b *Book) GetMediaType() MediaType {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return MediaTypePrint
 	}
 	ret := libGetMediaType(b.ptr)
@@ -74,7 +76,7 @@ func (b *Book) GetMediaType() MediaType {
 
 func (b *Book) GetPageMargins() PageMargins {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return PageMargins{}
 	}
 	ret := libGetPageMargins(b.ptr)
@@ -83,14 +85,14 @@ func (b *Book) GetPageMargins() PageMargins {
 
 func (b *Book) LoadURL(url string, userStyle string, userScript string) error {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 
 	cUrl := strings.CString(url)
 	cUserStyle := strings.CString(userStyle)
 	cUserScript := strings.CString(userScript)
-	ok := libLoadUrl(b.ptr, uintptr(unsafe.Pointer(cUrl)), uintptr(unsafe.Pointer(cUserStyle)), uintptr(unsafe.Pointer(cUserScript)))
+	ok := libLoadUrl(b.ptr, stringPtr(cUrl), stringPtr(cUserStyle), stringPtr(cUserScript))
 	if !ok {
 		msg := libGetErrorMessage()
 		return fmt.Errorf("error loading url %v: %v", url, msg)
@@ -100,7 +102,7 @@ func (b *Book) LoadURL(url string, userStyle string, userScript string) error {
 
 func (b *Book) LoadHTML(html string, userStyle string, userScript string, baseUrl string) error {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 
@@ -108,7 +110,7 @@ func (b *Book) LoadHTML(html string, userStyle string, userScript string, baseUr
 	cUserStyle := strings.CString(userStyle)
 	cUserScript := strings.CString(userScript)
 	cBaseUrl := strings.CString(baseUrl)
-	ok := libLoadHtml(b.ptr, uintptr(unsafe.Pointer(cHtml)), int32(lgHtml), uintptr(unsafe.Pointer(cUserStyle)), uintptr(unsafe.Pointer(cUserScript)), uintptr(unsafe.Pointer(cBaseUrl)))
+	ok := libLoadHtml(b.ptr, binPtr(cHtml), int32(lgHtml), stringPtr(cUserStyle), stringPtr(cUserScript), stringPtr(cBaseUrl))
 	if !ok {
 		msg := libGetErrorMessage()
 		return fmt.Errorf("error loading html: %v", msg)
@@ -118,7 +120,7 @@ func (b *Book) LoadHTML(html string, userStyle string, userScript string, baseUr
 
 func (b *Book) RenderPage(canvas *ImageCanvas, pageIndex int) error {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 	panic("TODO: Book.RenderPage")
@@ -126,7 +128,7 @@ func (b *Book) RenderPage(canvas *ImageCanvas, pageIndex int) error {
 
 func (b *Book) WriteToPDF(file string) error {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 	panic("TODO: Book.WriteToPDF")
@@ -134,7 +136,7 @@ func (b *Book) WriteToPDF(file string) error {
 
 func (b *Book) WriteToPDFRange(file string, pageStart, pageEnd, pageStep int) error {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 	panic("TODO: Book.WriteToPDFRange")
@@ -142,7 +144,7 @@ func (b *Book) WriteToPDFRange(file string, pageStart, pageEnd, pageStep int) er
 
 func (b *Book) SetCustomResourceFetcher(fetcher CustomResourceFetcher) error {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 	if fetcher == nil {
@@ -152,7 +154,7 @@ func (b *Book) SetCustomResourceFetcher(fetcher CustomResourceFetcher) error {
 			b.fetcher = nil
 		}
 
-		libSetCustomResourceFetcher(b.ptr, 0, 0)
+		libSetCustomResourceFetcher(b.ptr, nil, nil)
 		return nil
 	}
 
@@ -179,15 +181,15 @@ func (b *Book) SetCustomResourceFetcher(fetcher CustomResourceFetcher) error {
 	}
 	b.fetcher = fetcher
 
-	// pbClosure := uintptr(unsafe.Pointer(&fetcher))
-	pbClosure := uintptr(unsafe.Pointer(b))
-	libSetCustomResourceFetcher(b.ptr, uintptr(callback), pbClosure)
+	// pbClosure := unsafe.Pointer(&fetcher)
+	pbClosure := unsafe.Pointer(b)
+	libSetCustomResourceFetcher(b.ptr, callback, pbClosure)
 	return nil
 }
 
 func (b *Book) GetDocumentWidth() float32 {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return 0
 	}
 	return libGetDocumentWidth(b.ptr)
@@ -195,7 +197,7 @@ func (b *Book) GetDocumentWidth() float32 {
 
 func (b *Book) GetDocumentHeight() float32 {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return 0
 	}
 	return libGetDocumentHeight(b.ptr)
@@ -203,12 +205,12 @@ func (b *Book) GetDocumentHeight() float32 {
 
 func (b *Book) WriteToPNG(file string, width, height int) error {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 
 	cFile := strings.CString(file)
-	ret := libWriteToPNG(b.ptr, uintptr(unsafe.Pointer(cFile)), int32(width), int32(height))
+	ret := libWriteToPNG(b.ptr, stringPtr(cFile), int32(width), int32(height))
 	if !ret {
 		msg := libGetErrorMessage()
 		return fmt.Errorf("file write error: %v", msg)
@@ -218,7 +220,7 @@ func (b *Book) WriteToPNG(file string, width, height int) error {
 
 func (b *Book) WriteToPNGStream(output io.Writer, width, height int) error {
 	libInit()
-	if b.ptr == 0 {
+	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
 	// allocate the closure function
@@ -248,7 +250,7 @@ func (b *Book) WriteToPNGStream(output io.Writer, width, height int) error {
 		return fmt.Errorf("closure preparation failed: %v", status)
 	}
 
-	isOk := libWriteToPNGStream(b.ptr, uintptr(callback), uintptr(unsafe.Pointer(stream)), int32(width), int32(height))
+	isOk := libWriteToPNGStream(b.ptr, callback, unsafe.Pointer(stream), int32(width), int32(height))
 
 	if !isOk {
 		if stream.err != nil {

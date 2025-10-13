@@ -6,11 +6,6 @@ import (
 	"github.com/jupiterrider/ffi"
 )
 
-var (
-	libGetPageSize   func(book uintptr) PageSize
-	libGetPageSizeAt func(book uintptr, index int) PageSize
-)
-
 func registerFFIGetPageSize() {
 	libGetPageSizeSym := mustGetSymbol("plutobook_get_page_size")
 
@@ -19,7 +14,7 @@ func registerFFIGetPageSize() {
 		panic("plutobook_get_page_size cif prep is not OK")
 	}
 
-	libGetPageSize = func(book uintptr) PageSize {
+	libGetPageSize = func(book bookPtr) PageSize {
 		var ret PageSize
 		args := []unsafe.Pointer{
 			unsafe.Pointer(book),
@@ -37,7 +32,7 @@ func registerFFIGetPageSizeAt() {
 		panic("plutobook_get_page_size_at cif prep is not OK")
 	}
 
-	libGetPageSizeAt = func(book uintptr, index int) PageSize {
+	libGetPageSizeAt = func(book bookPtr, index int) PageSize {
 		nIndex := uint32(index)
 		var ret PageSize
 		args := []unsafe.Pointer{

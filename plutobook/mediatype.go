@@ -11,6 +11,4 @@ const (
 
 var (
 	ffiMediaTypeType = ffi.TypeSint32
-
-	libGetMediaType func(book uintptr) int32
 )

@@ -1,7 +1,11 @@
 package plutobook
 
+import "unsafe"
+
+type canvasPtr unsafe.Pointer
+
 type canvasInterface interface {
-	canvasPtr() uintptr
+	canvasPtr() canvasPtr
 
 	Close() error
 	Flush() error
@@ -21,24 +25,24 @@ type canvasInterface interface {
 }
 
 type CanvasBase struct {
-	ptr uintptr
+	ptr canvasPtr
 }
 
-func (c *CanvasBase) canvasPtr() uintptr {
+func (c *CanvasBase) canvasPtr() canvasPtr {
 	return c.ptr
 }
 
 func (c *CanvasBase) Close() error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasDestroy(c.ptr)
-	c.ptr = 0
+	c.ptr = nil
 	return nil
 }
 
 func (c *CanvasBase) Flush() error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasFlush(c.ptr)
@@ -46,7 +50,7 @@ func (c *CanvasBase) Flush() error {
 }
 
 func (c *CanvasBase) Finish() error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasFinish(c.ptr)
@@ -54,7 +58,7 @@ func (c *CanvasBase) Finish() error {
 }
 
 func (c *CanvasBase) Translate(tx, ty float32) error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasTranslate(c.ptr, tx, ty)
@@ -62,7 +66,7 @@ func (c *CanvasBase) Translate(tx, ty float32) error {
 }
 
 func (c *CanvasBase) Scale(sx, sy float32) error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasScale(c.ptr, sx, sy)
@@ -70,7 +74,7 @@ func (c *CanvasBase) Scale(sx, sy float32) error {
 }
 
 func (c *CanvasBase) Rotate(angle float32) error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasRotate(c.ptr, angle)
@@ -78,7 +82,7 @@ func (c *CanvasBase) Rotate(angle float32) error {
 }
 
 func (k *CanvasBase) Transform(a, b, c, d, e, f float32) error {
-	if k.ptr == 0 {
+	if k.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasTransform(k.ptr, a, b, c, d, e, f)
@@ -86,7 +90,7 @@ func (k *CanvasBase) Transform(a, b, c, d, e, f float32) error {
 }
 
 func (k *CanvasBase) SetMatrix(a, b, c, d, e, f float32) error {
-	if k.ptr == 0 {
+	if k.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasSetMatrix(k.ptr, a, b, c, d, e, f)
@@ -94,7 +98,7 @@ func (k *CanvasBase) SetMatrix(a, b, c, d, e, f float32) error {
 }
 
 func (c *CanvasBase) ResetMatrix() error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasResetMatrix(c.ptr)
@@ -102,7 +106,7 @@ func (c *CanvasBase) ResetMatrix() error {
 }
 
 func (c *CanvasBase) ClipRect(x, y, width, height float32) error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasClipRect(c.ptr, x, y, width, height)
@@ -110,7 +114,7 @@ func (c *CanvasBase) ClipRect(x, y, width, height float32) error {
 }
 
 func (c *CanvasBase) ClearSurface(r, g, b, a float32) error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasClearSurface(c.ptr, r, g, b, a)
@@ -118,7 +122,7 @@ func (c *CanvasBase) ClearSurface(r, g, b, a float32) error {
 }
 
 func (c *CanvasBase) SaveState() error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasSaveState(c.ptr)
@@ -126,7 +130,7 @@ func (c *CanvasBase) SaveState() error {
 }
 
 func (c *CanvasBase) RestoreState() error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrCanvasIsClosed
 	}
 	libCanvasRestoreState(c.ptr)

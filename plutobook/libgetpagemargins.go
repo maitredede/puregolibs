@@ -6,10 +6,6 @@ import (
 	"github.com/jupiterrider/ffi"
 )
 
-var (
-	libGetPageMargins func(book uintptr) PageMargins
-)
-
 func registerFFIGetPageMargins() {
 	libGetPageMarginsSym := mustGetSymbol("plutobook_get_page_margins")
 
@@ -21,7 +17,7 @@ func registerFFIGetPageMargins() {
 		panic("plutobook_get_page_margins cif prep is not OK")
 	}
 
-	libGetPageMargins = func(book uintptr) PageMargins {
+	libGetPageMargins = func(book bookPtr) PageMargins {
 		var ret PageMargins
 		args := []unsafe.Pointer{
 			unsafe.Pointer(book),
