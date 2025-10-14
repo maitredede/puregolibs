@@ -1,0 +1,76 @@
+package imagick
+
+type ExceptionType int32
+
+const (
+	UndefinedException        ExceptionType = 0
+	WarningException          ExceptionType = 300
+	ResourceLimitWarning      ExceptionType = 300
+	TypeWarning               ExceptionType = 305
+	OptionWarning             ExceptionType = 310
+	DelegateWarning           ExceptionType = 315
+	MissingDelegateWarning    ExceptionType = 320
+	CorruptImageWarning       ExceptionType = 325
+	FileOpenWarning           ExceptionType = 330
+	BlobWarning               ExceptionType = 335
+	StreamWarning             ExceptionType = 340
+	CacheWarning              ExceptionType = 345
+	CoderWarning              ExceptionType = 350
+	FilterWarning             ExceptionType = 352
+	ModuleWarning             ExceptionType = 355
+	DrawWarning               ExceptionType = 360
+	ImageWarning              ExceptionType = 365
+	WandWarning               ExceptionType = 370
+	RandomWarning             ExceptionType = 375
+	XServerWarning            ExceptionType = 380
+	MonitorWarning            ExceptionType = 385
+	RegistryWarning           ExceptionType = 390
+	ConfigureWarning          ExceptionType = 395
+	PolicyWarning             ExceptionType = 399
+	ErrorException            ExceptionType = 400
+	ResourceLimitError        ExceptionType = 400
+	TypeError                 ExceptionType = 405
+	OptionError               ExceptionType = 410
+	DelegateError             ExceptionType = 415
+	MissingDelegateError      ExceptionType = 420
+	CorruptImageError         ExceptionType = 425
+	FileOpenError             ExceptionType = 430
+	BlobError                 ExceptionType = 435
+	StreamError               ExceptionType = 440
+	CacheError                ExceptionType = 445
+	CoderError                ExceptionType = 450
+	FilterError               ExceptionType = 452
+	ModuleError               ExceptionType = 455
+	DrawError                 ExceptionType = 460
+	ImageError                ExceptionType = 465
+	WandError                 ExceptionType = 470
+	RandomError               ExceptionType = 475
+	XServerError              ExceptionType = 480
+	MonitorError              ExceptionType = 485
+	RegistryError             ExceptionType = 490
+	ConfigureError            ExceptionType = 495
+	PolicyError               ExceptionType = 499
+	FatalErrorException       ExceptionType = 700
+	ResourceLimitFatalError   ExceptionType = 700
+	TypeFatalError            ExceptionType = 705
+	OptionFatalError          ExceptionType = 710
+	DelegateFatalError        ExceptionType = 715
+	MissingDelegateFatalError ExceptionType = 720
+	CorruptImageFatalError    ExceptionType = 725
+	FileOpenFatalError        ExceptionType = 730
+	BlobFatalError            ExceptionType = 735
+	StreamFatalError          ExceptionType = 740
+	CacheFatalError           ExceptionType = 745
+	CoderFatalError           ExceptionType = 750
+	FilterFatalError          ExceptionType = 752
+	ModuleFatalError          ExceptionType = 755
+	DrawFatalError            ExceptionType = 760
+	ImageFatalError           ExceptionType = 765
+	WandFatalError            ExceptionType = 770
+	RandomFatalError          ExceptionType = 775
+	XServerFatalError         ExceptionType = 780
+	MonitorFatalError         ExceptionType = 785
+	RegistryFatalError        ExceptionType = 790
+	ConfigureFatalError       ExceptionType = 795
+	PolicyFatalError          ExceptionType = 799
+)
