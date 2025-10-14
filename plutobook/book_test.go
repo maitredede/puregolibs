@@ -147,9 +147,7 @@ func TestBookHtmlSampleToPNGStream(t *testing.T) {
 	}
 	t.Logf("png size: %d", output.Len())
 
-	bin := output.Bytes()
-	input := bytes.NewReader(bin)
-	img, err := png.Decode(input)
+	img, err := png.Decode(output)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,4 +189,10 @@ func TestBookUrlToPngStream(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("png size: %d", output.Len())
+
+	img, err := png.Decode(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("img size: %v %v", img.Bounds().Dx(), img.Bounds().Dy())
 }
