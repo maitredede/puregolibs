@@ -59,6 +59,13 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libGetDocumentHeight, initPtr, "plutobook_get_document_height")
 	purego.RegisterLibFunc(&libLoadHtml, initPtr, "plutobook_load_html")
 	purego.RegisterLibFunc(&libLoadUrl, initPtr, "plutobook_load_url")
+	purego.RegisterLibFunc(&libRenderPage, initPtr, "plutobook_render_page")
+	purego.RegisterLibFunc(&libWriteToPDF, initPtr, "plutobook_write_to_pdf")
+	purego.RegisterLibFunc(&libWriteToPDFRange, initPtr, "plutobook_write_to_pdf_range")
+	purego.RegisterLibFunc(&libWriteToPDFStream, initPtr, "plutobook_write_to_pdf_stream")
+	purego.RegisterLibFunc(&libWriteToPDFStreamRange, initPtr, "plutobook_write_to_pdf_stream_range")
+	purego.RegisterLibFunc(&libWriteToPNG, initPtr, "plutobook_write_to_png")
+	purego.RegisterLibFunc(&libWriteToPNGStream, initPtr, "plutobook_write_to_png_stream")
 
 	purego.RegisterLibFunc(&libImageCanvasCreate, initPtr, "plutobook_image_canvas_create")
 	// purego.RegisterLibFunc(&libPDFCanvasCreate, initPtr, "plutobook_pdf_canvas_create")
@@ -84,9 +91,6 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libImageCanvasGetStride, initPtr, "plutobook_image_canvas_get_stride")
 	purego.RegisterLibFunc(&libImageCanvasWriteToPNG, initPtr, "plutobook_image_canvas_write_to_png")
 	purego.RegisterLibFunc(&libImageCanvasWriteToPNGStream, initPtr, "plutobook_image_canvas_write_to_png_stream")
-
-	purego.RegisterLibFunc(&libWriteToPNGStream, initPtr, "plutobook_write_to_png_stream")
-	purego.RegisterLibFunc(&libWriteToPNG, initPtr, "plutobook_write_to_png")
 
 	purego.RegisterLibFunc(&libSetSSLCaInfo, initPtr, "plutobook_set_ssl_cainfo")
 	purego.RegisterLibFunc(&libSetSSLCaPath, initPtr, "plutobook_set_ssl_capath")
@@ -121,11 +125,16 @@ var (
 	libGetDocumentHeight        func(book bookPtr) float32
 	libLoadHtml                 func(book bookPtr, data binPtr, length int32, userStyle stringPtr, userScript stringPtr, baseUrl stringPtr) bool
 	libLoadUrl                  func(book bookPtr, url stringPtr, userStyle stringPtr, userScript stringPtr) bool
-	libWriteToPNG               func(book bookPtr, file stringPtr, width, height int32) bool
-	libWriteToPNGStream         func(book bookPtr, callback unsafe.Pointer, closure unsafe.Pointer, width, height int32) bool
 	libSetCustomResourceFetcher func(book bookPtr, callback unsafe.Pointer, closure unsafe.Pointer)
 	libGetMediaType             func(book bookPtr) int32
 	libGetPageMargins           func(book bookPtr) PageMargins
+	libRenderPage               func(book bookPtr, canvas canvasPtr, pageInted uint32)
+	libWriteToPDF               func(book bookPtr, file string) bool
+	libWriteToPDFRange          func(book bookPtr, file string, pageStart, pageEnd uint32, pageStep int32) bool
+	libWriteToPDFStream         func(book bookPtr, callback unsafe.Pointer, closure unsafe.Pointer) bool
+	libWriteToPDFStreamRange    func(book bookPtr, callback unsafe.Pointer, closure unsafe.Pointer, pageStart, pageEnd uint32, pageStep int32) bool
+	libWriteToPNG               func(book bookPtr, file stringPtr, width, height int32) bool
+	libWriteToPNGStream         func(book bookPtr, callback unsafe.Pointer, closure unsafe.Pointer, width, height int32) bool
 
 	libCanvasDestroy      func(canvas canvasPtr)
 	libCanvasFlush        func(canvas canvasPtr)

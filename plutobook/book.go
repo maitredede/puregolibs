@@ -123,7 +123,11 @@ func (b *Book) RenderPage(canvas *ImageCanvas, pageIndex int) error {
 	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
-	panic("TODO: Book.RenderPage")
+	if canvas.ptr == nil {
+		return ErrCanvasIsClosed
+	}
+	libRenderPage(b.ptr, canvas.ptr, uint32(pageIndex))
+	return nil
 }
 
 func (b *Book) WriteToPDF(file string) error {
@@ -131,7 +135,12 @@ func (b *Book) WriteToPDF(file string) error {
 	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
-	panic("TODO: Book.WriteToPDF")
+	ret := libWriteToPDF(b.ptr, file)
+	if !ret {
+		err := errors.New(libGetErrorMessage())
+		return err
+	}
+	return nil
 }
 
 func (b *Book) WriteToPDFRange(file string, pageStart, pageEnd, pageStep int) error {
@@ -139,7 +148,99 @@ func (b *Book) WriteToPDFRange(file string, pageStart, pageEnd, pageStep int) er
 	if b.ptr == nil {
 		return ErrBookIsClosed
 	}
-	panic("TODO: Book.WriteToPDFRange")
+	ret := libWriteToPDFRange(b.ptr, file, uint32(pageStart), uint32(pageEnd), int32(pageStep))
+	if !ret {
+		err := errors.New(libGetErrorMessage())
+		return err
+	}
+	return nil
+}
+
+func (b *Book) WriteToPDFStream(output io.Writer) error {
+	libInit()
+	if b.ptr == nil {
+		return ErrBookIsClosed
+	}
+	// allocate the closure function
+	var callback unsafe.Pointer
+	closure := ffi.ClosureAlloc(unsafe.Sizeof(ffi.Closure{}), &callback)
+	if closure == nil {
+		return errors.New("closure not allocated")
+	}
+	defer ffi.ClosureFree(closure)
+
+	// describe the closure's signature
+	// plutobook_stream_status_t (*plutobook_stream_write_callback_t)(void* closure, const char* data, unsigned int length);
+	var cifCallback ffi.Cif
+	if status := ffi.PrepCif(&cifCallback, ffi.DefaultAbi, 3, &ffi.TypeSint32, &ffi.TypePointer, &ffi.TypePointer, &ffi.TypeUint32); status != ffi.OK {
+		return fmt.Errorf("cif preparation failed: %v", status)
+	}
+
+	// fn will be called, then the closure gets invoked
+	fn := ffi.NewCallback(streamWriteCallback)
+
+	stream := &streamWriteData{
+		output: output,
+		err:    nil,
+	}
+	// prepare the closure
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, nil, callback); status != ffi.OK {
+		return fmt.Errorf("closure preparation failed: %v", status)
+	}
+
+	isOk := libWriteToPDFStream(b.ptr, callback, unsafe.Pointer(stream))
+
+	if !isOk {
+		if stream.err != nil {
+			return stream.err
+		}
+		msg := libGetErrorMessage()
+		return fmt.Errorf("pdf write failed: %v", msg)
+	}
+	return nil
+}
+
+func (b *Book) WriteToPDFStreamRange(output io.Writer, pageStart, pageEnd, pageStep int) error {
+	libInit()
+	if b.ptr == nil {
+		return ErrBookIsClosed
+	}
+	// allocate the closure function
+	var callback unsafe.Pointer
+	closure := ffi.ClosureAlloc(unsafe.Sizeof(ffi.Closure{}), &callback)
+	if closure == nil {
+		return errors.New("closure not allocated")
+	}
+	defer ffi.ClosureFree(closure)
+
+	// describe the closure's signature
+	// plutobook_stream_status_t (*plutobook_stream_write_callback_t)(void* closure, const char* data, unsigned int length);
+	var cifCallback ffi.Cif
+	if status := ffi.PrepCif(&cifCallback, ffi.DefaultAbi, 3, &ffi.TypeSint32, &ffi.TypePointer, &ffi.TypePointer, &ffi.TypeUint32); status != ffi.OK {
+		return fmt.Errorf("cif preparation failed: %v", status)
+	}
+
+	// fn will be called, then the closure gets invoked
+	fn := ffi.NewCallback(streamWriteCallback)
+
+	stream := &streamWriteData{
+		output: output,
+		err:    nil,
+	}
+	// prepare the closure
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, nil, callback); status != ffi.OK {
+		return fmt.Errorf("closure preparation failed: %v", status)
+	}
+
+	isOk := libWriteToPDFStreamRange(b.ptr, callback, unsafe.Pointer(stream), uint32(pageStart), uint32(pageEnd), int32(pageStep))
+	if !isOk {
+		if stream.err != nil {
+			return stream.err
+		}
+		msg := libGetErrorMessage()
+		return fmt.Errorf("pdf range write failed: %v", msg)
+	}
+	return nil
 }
 
 func (b *Book) SetCustomResourceFetcher(fetcher CustomResourceFetcher) error {
