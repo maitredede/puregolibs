@@ -22,7 +22,7 @@ func getSystemLibrary() string {
 	case "linux":
 		return "libusb-1.0.so"
 	case "windows":
-		return "libusb-1.dll"
+		return "libusb-1.0.dll"
 	default:
 		panic(fmt.Errorf("GOOS=%s is not supported", runtime.GOOS))
 	}
