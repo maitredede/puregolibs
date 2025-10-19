@@ -7,6 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/ebitengine/purego"
+	"github.com/jupiterrider/ffi"
 )
 
 var (
@@ -167,3 +168,49 @@ var (
 	libResourceDataDestroy           func(resource resourceDataPtr)
 	libResourceDataGetReferenceCount func(resource resourceDataPtr) uint32
 )
+
+func registerFFIGetPageSize() {
+	sym := mustGetSymbol("plutobook_get_page_size")
+
+	var cif ffi.Cif
+	if ok := ffi.PrepCif(&cif, ffi.DefaultAbi, 1, &ffiPageSizeType, &ffi.TypePointer); ok != ffi.OK {
+		panic("plutobook_get_page_size cif prep is not OK")
+	}
+
+	libGetPageSize = func(book bookPtr) PageSize {
+		var ret PageSize
+		ffi.Call(&cif, sym, unsafe.Pointer(&ret), unsafe.Pointer(&book))
+		return ret
+	}
+}
+
+func registerFFIGetPageSizeAt() {
+	sym := mustGetSymbol("plutobook_get_page_size_at")
+
+	var cif ffi.Cif
+	if ok := ffi.PrepCif(&cif, ffi.DefaultAbi, 2, &ffiPageSizeType, &ffi.TypePointer, &ffi.TypeUint32); ok != ffi.OK {
+		panic("plutobook_get_page_size_at cif prep is not OK")
+	}
+
+	libGetPageSizeAt = func(book bookPtr, index int) PageSize {
+		var ret PageSize
+		cIndex := uint32(index)
+		ffi.Call(&cif, sym, unsafe.Pointer(&ret), unsafe.Pointer(&book), unsafe.Pointer(&cIndex))
+		return ret
+	}
+}
+
+func registerFFIGetPageMargins() {
+	sym := mustGetSymbol("plutobook_get_page_margins")
+
+	var cif ffi.Cif
+	if ok := ffi.PrepCif(&cif, ffi.DefaultAbi, 1, &ffiPageMarginsType, &ffi.TypePointer); ok != ffi.OK {
+		panic("plutobook_get_page_margins cif prep is not OK")
+	}
+
+	libGetPageMargins = func(book bookPtr) PageMargins {
+		var ret PageMargins
+		ffi.Call(&cif, sym, unsafe.Pointer(&ret), unsafe.Pointer(&book))
+		return ret
+	}
+}

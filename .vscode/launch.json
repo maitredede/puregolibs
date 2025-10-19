@@ -12,6 +12,15 @@
       "program": "${workspaceFolder}/examples/sane-example",
       "env": {},
       "args": ["-localonly=false"]
+    },
+    {
+      "name": "tools/structsizes",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/tools/structsizes",
+      "env": {},
+      "args": []
     }
   ]
 }

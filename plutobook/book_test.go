@@ -37,11 +37,8 @@ func TestBookCreate(t *testing.T) {
 	}
 }
 
-func TestBookSizes(t *testing.T) {
-	size := PageSize{
-		Width:  101,
-		Height: 102,
-	}
+func TestBookPageSizeMaginsMediaType(t *testing.T) {
+	size := PageSizeA4
 	margins := PageMargins{
 		Top:    12,
 		Right:  34,
@@ -58,9 +55,11 @@ func TestBookSizes(t *testing.T) {
 	savedPageSize := b.GetPageSize()
 	t.Logf("book pageSize: ctor=%+v, actual=%+v", size, savedPageSize)
 	assert.EqualExportedValues(t, size, savedPageSize)
+
 	savedMargins := b.GetPageMargins()
 	t.Logf("book margins: ctor=%+v, actual=%+v", margins, savedMargins)
 	assert.EqualExportedValues(t, margins, savedMargins)
+
 	savedMediaType := b.GetMediaType()
 	t.Logf("book media: ctor=%+v, actual=%+v", media, savedMediaType)
 	assert.EqualValues(t, media, savedMediaType)
