@@ -41,9 +41,9 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libusbInitContext, initPtr, "libusb_init_context")
 	purego.RegisterLibFunc(&libusbExit, initPtr, "libusb_exit")
 	purego.RegisterLibFunc(&libusbSetDebug, initPtr, "libusb_set_debug")
-	// libusb_set_log_cb
+	purego.RegisterLibFunc(&libusbSetLogCb, initPtr, "libusb_set_log_cb")
 	purego.RegisterLibFunc(&libusbGetVersion, initPtr, "libusb_get_version")
-	// libusb_has_capability
+	purego.RegisterLibFunc(&libusbHasCapability, initPtr, "libusb_has_capability")
 	purego.RegisterLibFunc(&libusbErrorName, initPtr, "libusb_error_name")
 	purego.RegisterLibFunc(&libusbSetLocale, initPtr, "libusb_setlocale")
 	purego.RegisterLibFunc(&libusbStrError, initPtr, "libusb_strerror")
@@ -54,11 +54,11 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libusbUnrefDevice, initPtr, "libusb_unref_device")
 
 	// libusb_get_device_string
-	// libusb_get_configuration
+	purego.RegisterLibFunc(&libusbGetConfiguration, initPtr, "libusb_get_configuration")
 	purego.RegisterLibFunc(&libusbGetDeviceDescriptor, initPtr, "libusb_get_device_descriptor")
-	// libusb_get_active_config_descriptor
+	purego.RegisterLibFunc(&libusbGetActiveConfigDescriptor, initPtr, "libusb_get_active_config_descriptor")
 	purego.RegisterLibFunc(&libusbGetConfigDescriptor, initPtr, "libusb_get_config_descriptor")
-	// libusb_get_config_descriptor_by_value
+	purego.RegisterLibFunc(&libusbGetConfigDescriptorByValue, initPtr, "libusb_get_config_descriptor_by_value")
 	purego.RegisterLibFunc(&libusbFreeConfigDescriptor, initPtr, "libusb_free_config_descriptor")
 	// libusb_get_ss_endpoint_companion_descriptor
 	// libusb_free_ss_endpoint_companion_descriptor
@@ -101,11 +101,11 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libusbOpenDeviceWithVidPid, initPtr, "libusb_open_device_with_vid_pid")
 
 	purego.RegisterLibFunc(&libusbSetInterfaceAltSetting, initPtr, "libusb_set_interface_alt_setting")
-	// libusb_clear_halt
+	purego.RegisterLibFunc(&libusbClearHalt, initPtr, "libusb_clear_halt")
 	purego.RegisterLibFunc(&libusbResetDevice, initPtr, "libusb_reset_device")
 
-	// libusb_alloc_streams
-	// libusb_free_streams
+	purego.RegisterLibFunc(&libusbAllocStreams, initPtr, "libusb_alloc_streams")
+	purego.RegisterLibFunc(&libusbFreeStreams, initPtr, "libusb_free_streams")
 
 	// libusb_dev_mem_alloc
 	// libusb_dev_mem_free
@@ -139,7 +139,7 @@ func libInitFuncs() {
 	// libusb_wait_for_event
 
 	// libusb_handle_events_timeout
-	// libusb_handle_events_timeout_completed
+	purego.RegisterLibFunc(&libusbHandleEventsTimeoutCompleted, initPtr, "libusb_handle_events_timeout_completed")
 	// libusb_handle_events
 	// libusb_handle_events_completed
 	// libusb_handle_events_locked
@@ -150,10 +150,9 @@ func libInitFuncs() {
 	// libusb_free_pollfds
 	// libusb_set_pollfd_notifiers
 
-	// libusb_hotplug_register_callback
-
-	// libusb_hotplug_deregister_callback
-	// libusb_hotplug_get_user_data
+	purego.RegisterLibFunc(&libusbHotplugRegisterCallback, initPtr, "libusb_hotplug_register_callback")
+	purego.RegisterLibFunc(&libusbHotplugDeregisterCallback, initPtr, "libusb_hotplug_deregister_callback")
+	purego.RegisterLibFunc(&libusbHotplugGetUserData, initPtr, "libusb_hotplug_get_user_data")
 
 	purego.RegisterLibFunc(&libusbSetOption, initPtr, "libusb_set_option")
 	purego.RegisterLibFunc(&libusbSetOptionInt32, initPtr, "libusb_set_option")
@@ -161,17 +160,16 @@ func libInitFuncs() {
 }
 
 var (
-	libusbInit        func(ctx *libusbContext) int32
-	libusbInitContext func(ctx *libusbContext, options *NativeLibusbInitOption, numOptions int32) int32
-	libusbExit        func(ctx libusbContext)
-	libusbSetDebug    func(ctx libusbContext, level LogLevel)
-	// libusb_set_log_cb
-	libusbGetVersion func() *libusbVersion
-	// libusb_has_capability
-	libusbErrorName func(errorCode int32) string
-	// libusbSetLocale func(ctx unsafe.Pointer, locale unsafe.Pointer) int32
-	libusbSetLocale func(ctx libusbContext, locale string) int32
-	libusbStrError  func(errorCode int32) string
+	libusbInit          func(ctx *libusbContext) int32
+	libusbInitContext   func(ctx *libusbContext, options *NativeLibusbInitOption, numOptions int32) int32
+	libusbExit          func(ctx libusbContext)
+	libusbSetDebug      func(ctx libusbContext, level LogLevel)
+	libusbSetLogCb      func(ctx libusbContext, cb unsafe.Pointer, mode int32)
+	libusbGetVersion    func() *libusbVersion
+	libusbHasCapability func(cap Capability) bool
+	libusbErrorName     func(errorCode int32) string
+	libusbSetLocale     func(ctx libusbContext, locale string) int32
+	libusbStrError      func(errorCode int32) string
 
 	libusbGetDeviceList  func(ctx libusbContext, list **libusbDevice) int32
 	libusbFreeDeviceList func(list *libusbDevice, unrefDevices int32)
@@ -179,12 +177,12 @@ var (
 	libusbUnrefDevice    func(device libusbDevice)
 
 	// libusb_get_device_string
-	// libusb_get_configuration
-	libusbGetDeviceDescriptor func(dev libusbDevice, desc *libusbDeviceDescriptor) int32
-	// libusb_get_active_config_descriptor
-	libusbGetConfigDescriptor func(dev libusbDevice, configIndex uint8, config **libusbConfigDescriptor) int32
-	// libusb_get_config_descriptor_by_value
-	libusbFreeConfigDescriptor func(config *libusbConfigDescriptor)
+	libusbGetConfiguration           func(device libusbDeviceHandle, config *int32) int32
+	libusbGetDeviceDescriptor        func(dev libusbDevice, desc *libusbDeviceDescriptor) int32
+	libusbGetActiveConfigDescriptor  func(dev libusbDevice, config **libusbConfigDescriptor) int32
+	libusbGetConfigDescriptor        func(dev libusbDevice, configIndex uint8, config **libusbConfigDescriptor) int32
+	libusbGetConfigDescriptorByValue func(dev libusbDevice, configurationValue uint8, config **libusbConfigDescriptor) int32
+	libusbFreeConfigDescriptor       func(config *libusbConfigDescriptor)
 	// libusb_get_ss_endpoint_companion_descriptor
 	// libusb_free_ss_endpoint_companion_descriptor
 	// libusb_get_bos_descriptor
@@ -226,11 +224,11 @@ var (
 	libusbOpenDeviceWithVidPid func(ctx libusbContext, vendorID uint16, productID uint16) libusbDeviceHandle
 
 	libusbSetInterfaceAltSetting func(devHandle libusbDeviceHandle, interfaceNumber int32, alternateSettings int32) int32
-	// libusb_clear_halt
-	libusbResetDevice func(devHandle libusbDeviceHandle) int32
+	libusbClearHalt              func(devHandle libusbDeviceHandle, endpoint byte) int32
+	libusbResetDevice            func(devHandle libusbDeviceHandle) int32
 
-	// libusb_alloc_streams
-	// libusb_free_streams
+	libusbAllocStreams func(devHandle libusbDeviceHandle, numStreams uint32, endpoints *byte, numEnpoints int32) int32
+	libusbFreeStreams  func(devHandle libusbDeviceHandle, endpoints *byte, numEnpoints int32) int32
 
 	// libusb_dev_mem_alloc
 	// libusb_dev_mem_free
@@ -264,7 +262,7 @@ var (
 	// libusb_wait_for_event
 
 	// libusb_handle_events_timeout
-	// libusb_handle_events_timeout_completed
+	libusbHandleEventsTimeoutCompleted func(ctx libusbContext, tv *NativeTimeval, completed *int32) int32
 	// libusb_handle_events
 	// libusb_handle_events_completed
 	// libusb_handle_events_locked
@@ -275,10 +273,9 @@ var (
 	// libusb_free_pollfds
 	// libusb_set_pollfd_notifiers
 
-	// libusb_hotplug_register_callback
-
-	// libusb_hotplug_deregister_callback
-	// libusb_hotplug_get_user_data
+	libusbHotplugRegisterCallback   func(ctx libusbContext, events HotplugEvent, flags HotplugFlags, vendorId, productID, devClass int32, cbfn unsafe.Pointer, userData unsafe.Pointer, h *hotplugCallbackHandle) int32
+	libusbHotplugDeregisterCallback func(ctx libusbContext, handle hotplugCallbackHandle)
+	libusbHotplugGetUserData        func(ctx libusbContext, handle hotplugCallbackHandle) unsafe.Pointer
 
 	libusbSetOption      func(ctx libusbContext, option libusbOption, values ...any) int32
 	libusbSetOptionInt32 func(ctx libusbContext, option libusbOption, value int32) int32

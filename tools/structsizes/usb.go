@@ -3,6 +3,8 @@
 package main
 
 // #include <libusb-1.0/libusb.h>
+// #include <sys/time.h>
+// #include <sys/types.h>
 import "C"
 import (
 	"fmt"
@@ -14,5 +16,9 @@ import (
 func dumpUsb() {
 	var initOption C.struct_libusb_init_option
 	var goInitOption gousb.NativeLibusbInitOption
-	fmt.Printf("sane: sizeof libusb_init_option=%d goInitOption=%d\n", unsafe.Sizeof(initOption), unsafe.Sizeof(goInitOption))
+	fmt.Printf("usb: sizeof libusb_init_option=%d goInitOption=%d\n", unsafe.Sizeof(initOption), unsafe.Sizeof(goInitOption))
+
+	var timeval C.struct_timeval
+	var goTimeval gousb.NativeTimeval
+	fmt.Printf("usb: sizeof timeval=%d goTimeval=%d\n", unsafe.Sizeof(timeval), unsafe.Sizeof(goTimeval))
 }

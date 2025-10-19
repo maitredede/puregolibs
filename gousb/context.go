@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 	"unsafe"
 
 	"github.com/jupiterrider/ffi"
@@ -61,25 +62,45 @@ func Init(options ...InitOption) (*Context, error) {
 	return ctx, nil
 }
 
+func (c *Context) HandleEventsTimeout(timeout time.Duration) (int, error) {
+	var tv *NativeTimeval
+	if timeout > 0 {
+		sec := int64(timeout.Seconds())
+		nSec := (timeout - (time.Duration(sec) * time.Second)).Nanoseconds()
+		tv = &NativeTimeval{
+			Sec:  sec,
+			NSec: nSec,
+		}
+	}
+
+	var completed int32
+	ret := libusbHandleEventsTimeoutCompleted(c.ptr, tv, &completed)
+	err := errorFromRet(ret)
+	return int(completed), err
+}
+
 func (c *Context) Close() error {
 	libInit()
 
 	if !c.ptrValid {
 		return ErrInvalidContext
 	}
-	if err := c.checkOpenDevs(); err != nil {
-		return err
-	}
-	libusbExit(c.ptr)
-	c.ptrValid = false
+
 	contextMapLck.Lock()
 	defer contextMapLck.Unlock()
 
-	delete(contextMap, c.ptr)
+	if err := c.checkOpenDevs(); err != nil {
+		return err
+	}
 
 	for _, d := range c.disposables {
 		d()
 	}
+
+	defer delete(contextMap, c.ptr)
+
+	libusbExit(c.ptr)
+	c.ptrValid = false
 
 	return nil
 }
