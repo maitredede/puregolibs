@@ -1,5 +1,9 @@
 package libnfc
 
-type NfcTarget interface {
-}
+import "unsafe"
 
+type nfcTargetPtr unsafe.Pointer
+
+type NfcTarget interface {
+	ptr() nfcTargetPtr
+}

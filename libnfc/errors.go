@@ -4,6 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"unsafe"
+
+	"github.com/maitredede/puregolibs/tools"
 )
 
 type libNfcError uintptr
@@ -57,29 +60,37 @@ func (e libNfcError) Error() error {
 	return fmt.Errorf("unkown nfc error: %v", int64(e))
 }
 
-func isLibError(ptr uintptr) bool {
-	var errList []libNfcError = []libNfcError{
-		libNfcEIO,
-		libNfcEInvArg,
-		libNfcEDEVNOTSUPP,
-		libNfcENOTSUCHDEV,
-		libNfcEOVFLOW,
-		libNfcETIMEOUT,
-		libNfcEOPABORTED,
-		libNfcENOTIMPL,
-		libNfcETGRELEASED,
-		libNfcERFTRANS,
-		libNfcEMFCAUTHFAIL,
-		libNfcESOFT,
-		libNfcECHIP,
-	}
-	is := slices.Contains(errList, libNfcError(ptr))
+var _ tools.Timeout = (*libNfcError)(nil)
+
+func (e libNfcError) Timeout() bool {
+	return e == libNfcETIMEOUT
+}
+
+var errList []libNfcError = []libNfcError{
+	libNfcEIO,
+	libNfcEInvArg,
+	libNfcEDEVNOTSUPP,
+	libNfcENOTSUCHDEV,
+	libNfcEOVFLOW,
+	libNfcETIMEOUT,
+	libNfcEOPABORTED,
+	libNfcENOTIMPL,
+	libNfcETGRELEASED,
+	libNfcERFTRANS,
+	libNfcEMFCAUTHFAIL,
+	libNfcESOFT,
+	libNfcECHIP,
+}
+
+func isLibErrorInt32(ret int32) bool {
+	is := slices.Contains(errList, libNfcError(ret))
 	return is
 }
 
-var (
-	libStrError func() string
-)
+func isLibErrorPtr(ptr unsafe.Pointer) bool {
+	is := slices.Contains(errList, libNfcError(ptr))
+	return is
+}
 
 var ErrContextClosed *ErrorContextClosed = &ErrorContextClosed{m: "nfc context is closed"}
 

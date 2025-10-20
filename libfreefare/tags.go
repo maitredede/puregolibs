@@ -11,7 +11,7 @@ import (
 var (
 	// MifareTag	*freefare_get_tags (nfc_device *device)
 	//libGetTags func(nfcDevice uintptr) *uintptr
-	libGetTags func(nfcDevice uintptr) *uintptr
+	libGetTags func(nfcDevice unsafe.Pointer) *uintptr
 	// void		 freefare_free_tags (MifareTag *tags)
 	// libFreeTags func(tag *uintptr)
 	libFreeTags func(tags *uintptr)

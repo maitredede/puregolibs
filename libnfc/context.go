@@ -10,23 +10,18 @@ import (
 	"github.com/maitredede/puregolibs/strings"
 )
 
-var (
-	// void nfc_init(nfc_context **context)
-	libNfcInit func(context *uintptr)
-	// void nfc_exit(nfc_context *context)
-	libNfcExit func(context uintptr)
-)
+type nfcContextPtr unsafe.Pointer
 
 type NfcContext struct {
-	ptr uintptr
+	ptr nfcContextPtr
 }
 
 func InitContext() (*NfcContext, error) {
 	libInit()
 
-	var ptr uintptr
+	var ptr nfcContextPtr
 	libNfcInit(&ptr)
-	if ptr == 0 {
+	if ptr == nil {
 		return nil, errors.New("unable to init libnfc (malloc)")
 	}
 	c := &NfcContext{
@@ -36,11 +31,11 @@ func InitContext() (*NfcContext, error) {
 }
 
 func (c *NfcContext) Close() error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrContextClosed
 	}
 	libNfcExit(c.ptr)
-	c.ptr = 0
+	c.ptr = nil
 	return nil
 }
 
@@ -53,21 +48,21 @@ func (c *NfcContext) OpenDevice(connstring string) (*NfcDevice, error) {
 }
 
 func (c *NfcContext) openReal(connstring *string) (*NfcDevice, error) {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return nil, ErrContextClosed
 	}
-	var pnd uintptr
+	var pnd nfcDevicePtr
 	if connstring == nil {
-		pnd = libNfcOpen(c.ptr, 0)
+		pnd = libNfcOpen(c.ptr, nil)
 	} else {
 		cstr := strings.CString(*connstring)
-		p := uintptr(unsafe.Pointer(cstr))
+		p := unsafe.Pointer(cstr)
 		pnd = libNfcOpen(c.ptr, p)
 	}
-	if pnd == 0 {
+	if pnd == nil {
 		return nil, errors.New("unable to open NFC device")
 	}
-	if isLibError(pnd) {
+	if isLibErrorPtr(unsafe.Pointer(pnd)) {
 		return nil, libNfcError(pnd).Error()
 	}
 
@@ -93,12 +88,12 @@ func (s nfcConnString) String() string {
 }
 
 func (c *NfcContext) ListDevices() ([]string, error) {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return nil, ErrContextClosed
 	}
 
 	var constrings [maxDeviceCount]nfcConnString
-	p := uintptr(unsafe.Pointer(&constrings))
+	p := unsafe.Pointer(&constrings[0])
 	deviceFound := libNfcListDevices(c.ptr, p, maxDeviceCount)
 	slog.Debug(fmt.Sprintf("found %d devices", deviceFound))
 	result := make([]string, deviceFound)

@@ -5,66 +5,68 @@ import (
 	"unsafe"
 
 	"github.com/jupiterrider/ffi"
-	"github.com/maitredede/puregolibs/strings"
 )
 
-type nativeDriver struct {
+type nfcDriverPtr unsafe.Pointer
+
+type nativeDriverList struct {
+	next   *nativeDriverList
+	driver *NativeDriver
+}
+
+type NativeDriver struct {
 	// const char *name
-	name uintptr
+	name unsafe.Pointer
 	// const scan_type_enum scan_type
 	scanType ScanMode
 	// size_t (*scan)(const nfc_context *context, nfc_connstring connstrings[], const size_t connstrings_len)
-	scan uintptr
+	scan unsafe.Pointer
 	// struct nfc_device *(*open)(const nfc_context *context, const nfc_connstring connstring)
-	open uintptr
+	open unsafe.Pointer
 	// void (*close)(struct nfc_device *pnd)
-	close uintptr
+	close unsafe.Pointer
 	// const char *(*strerror)(const struct nfc_device *pnd)
-	strerror uintptr
+	strerror unsafe.Pointer
 
-	initiatorInit                 uintptr
-	initiatorInitSecureElement    uintptr
-	initiatorSelectPassiveTarget  uintptr
-	initiatorPollTarget           uintptr
-	initiatorSelectDepTarget      uintptr
-	initiatorDeselectTarget       uintptr
-	initiatorTransceiveBytes      uintptr
-	initiatorTransceiveBits       uintptr
-	initiatorTransceiveBytesTimed uintptr
-	initiatorTransceiveBitsTimed  uintptr
-	initiatorTargetIsPresent      uintptr
+	initiatorInit                 unsafe.Pointer
+	initiatorInitSecureElement    unsafe.Pointer
+	initiatorSelectPassiveTarget  unsafe.Pointer
+	initiatorPollTarget           unsafe.Pointer
+	initiatorSelectDepTarget      unsafe.Pointer
+	initiatorDeselectTarget       unsafe.Pointer
+	initiatorTransceiveBytes      unsafe.Pointer
+	initiatorTransceiveBits       unsafe.Pointer
+	initiatorTransceiveBytesTimed unsafe.Pointer
+	initiatorTransceiveBitsTimed  unsafe.Pointer
+	initiatorTargetIsPresent      unsafe.Pointer
 
-	targetInit         uintptr
-	targetSendBytes    uintptr
-	targetReceiveBytes uintptr
-	targetSendBits     uintptr
-	targetReceiveBits  uintptr
+	targetInit         unsafe.Pointer
+	targetSendBytes    unsafe.Pointer
+	targetReceiveBytes unsafe.Pointer
+	targetSendBits     unsafe.Pointer
+	targetReceiveBits  unsafe.Pointer
 
-	deviceSetPropertyBool     uintptr
-	deviceSetPropertyInt      uintptr
-	getSupportedModulation    uintptr
-	getSupportedBaudRate      uintptr
-	deviceGetInformationAbout uintptr
+	deviceSetPropertyBool     unsafe.Pointer
+	deviceSetPropertyInt      unsafe.Pointer
+	getSupportedModulation    unsafe.Pointer
+	getSupportedBaudRate      unsafe.Pointer
+	deviceGetInformationAbout unsafe.Pointer
 
-	abortCommand uintptr
-	idle         uintptr
-	powerdown    uintptr
+	abortCommand unsafe.Pointer
+	idle         unsafe.Pointer
+	powerdown    unsafe.Pointer
 }
 
-var (
-	// int nfc_register_driver(const nfc_driver *driver)
-	libNfcRegisterDriver func(driver uintptr) int16
-)
-
 type Driver struct {
-	Name string
+	Name     string
+	ScanMode ScanMode
 }
 
 type driverInfo struct {
 	driver *Driver
 
 	nameBin     *byte
-	nd          *nativeDriver
+	nd          *NativeDriver
 	disposables []func()
 }
 
@@ -74,17 +76,37 @@ func (di *driverInfo) Dispose() {
 	}
 }
 
-type ScanMode int16
-
-const (
-	ScanModeNotIntrusive ScanMode = iota
-	ScanModeIntrusive
-	ScanModeNotAvailable
-)
-
 var (
-	drivers = make([]driverInfo, 0)
+	goDrivers = make([]driverInfo, 0)
 )
+
+func GetNativeDrivers() ([]*NativeDriver, error) {
+	sym, err := getSymbol("nfc_drivers")
+	if err != nil {
+		return nil, err
+	}
+	ptr := unsafe.Pointer(sym)
+	nfcDrivers := (*nativeDriverList)(ptr)
+	cur := nfcDrivers
+	res := make([]*NativeDriver, 0, 10)
+	for {
+		if cur == nil {
+			break
+		}
+		if cur.driver == nil {
+			cur = cur.next
+			continue
+		}
+
+		// name := strings.GoStringN(uintptr(cur.driver.name), 256)
+		// t.Logf("driver: %s", name)
+
+		res = append(res, cur.driver)
+		cur = cur.next
+	}
+
+	return res, nil
+}
 
 func RegisterDriver(driver *Driver) error {
 	libInit()
@@ -96,6 +118,9 @@ func RegisterDriver(driver *Driver) error {
 	// allocate the closure function
 	var callback unsafe.Pointer
 	closure := ffi.ClosureAlloc(unsafe.Sizeof(ffi.Closure{}), &callback)
+	if closure == nil {
+		panic("closure alloc failed")
+	}
 	di.disposables = append(di.disposables, func() {
 		ffi.ClosureFree(closure)
 	})
@@ -115,31 +140,34 @@ func RegisterDriver(driver *Driver) error {
 		return 0
 	})
 	// prepare the closure
-	if closure != nil {
-		if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, nil, callback); status != ffi.OK {
-			panic(status)
-		}
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, nil, callback); status != ffi.OK {
+		panic(status)
 	}
 
-	di.nameBin = strings.CString(driver.Name)
-
-	namePtr := uintptr(unsafe.Pointer(di.nameBin))
-	nd := nativeDriver{
-		name: namePtr,
+	cName := append([]byte(driver.Name), 0)
+	if len(cName) > 255 {
+		cName = append(cName[:255], 0)
+	}
+	di.nameBin = &cName[0]
+	// di.nameBin = strings.CString(driver.Name)
+	// namePtr := unsafe.Pointer(di.nameBin)
+	nd := NativeDriver{
+		name: unsafe.Pointer(di.nameBin),
 		// scanType: ScanModeNotAvailable,
-		scanType: ScanModeNotIntrusive,
-		scan:     uintptr(callback),
+		// scanType: ScanModeNotIntrusive,
+		scanType: driver.ScanMode,
+		scan:     callback,
 	}
 	di.nd = &nd
 
-	driverPtr := uintptr(unsafe.Pointer(&di.nd))
+	driverPtr := nfcDriverPtr(di.nd)
 
 	ret := libNfcRegisterDriver(driverPtr)
 	if ret == 0 {
-		drivers = append(drivers, di)
+		goDrivers = append(goDrivers, di)
 		return nil
 	}
-	defer di.Dispose()
+	// defer di.Dispose()
 
 	return fmt.Errorf("register driver ret=%v", ret)
 }
