@@ -22,7 +22,6 @@ type Device struct {
 }
 
 func (d *Device) Close() error {
-	// if !d.handleValid {
 	if d.handle == nil {
 		return ErrInvalidDevice
 	}
@@ -40,4 +39,13 @@ func (d *Device) Close() error {
 // String represents a human readable representation of the device.
 func (d *Device) String() string {
 	return fmt.Sprintf("vid=%s,pid=%s,bus=%d,addr=%d", d.Desc.Vendor, d.Desc.Product, d.Desc.Bus, d.Desc.Address)
+}
+
+func (d *Device) Reset() error {
+	if d.handle == nil {
+		return ErrInvalidDevice
+	}
+	ret := libusbResetDevice(d.handle)
+	err := errorFromRet(ret)
+	return err
 }
