@@ -2,6 +2,7 @@ package libnfc
 
 import (
 	"fmt"
+	"log/slog"
 	"unsafe"
 
 	"github.com/jupiterrider/ffi"
@@ -60,6 +61,7 @@ type NativeDriver struct {
 type Driver struct {
 	Name     string
 	ScanMode ScanMode
+	Scan     func() ([]string, LibNfcError)
 }
 
 type driverInfo struct {
@@ -67,6 +69,7 @@ type driverInfo struct {
 
 	nameBin     *byte
 	nd          *NativeDriver
+	ndPtr       nfcDriverPtr
 	disposables []func()
 }
 
@@ -77,7 +80,7 @@ func (di *driverInfo) Dispose() {
 }
 
 var (
-	goDrivers = make([]driverInfo, 0)
+	goDrivers = make([]*driverInfo, 0)
 )
 
 func GetNativeDrivers() ([]*NativeDriver, error) {
@@ -111,7 +114,7 @@ func GetNativeDrivers() ([]*NativeDriver, error) {
 func RegisterDriver(driver *Driver) error {
 	libInit()
 
-	di := driverInfo{
+	di := &driverInfo{
 		driver: driver,
 	}
 
@@ -136,11 +139,45 @@ func RegisterDriver(driver *Driver) error {
 	}
 	// fn will be called, then the closure gets invoked
 	fn := ffi.NewCallback(func(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
-		fmt.Println("Hello, World Scan NFC Go!")
+		slog.Debug("Hello, World Scan NFC Go!")
+
+		argArr := unsafe.Slice(args, cif.NArgs)
+		ctx := *(*nfcContextPtr)(argArr[0])
+		conStringsPtr := *(**nfcConnString)(unsafe.Pointer(argArr[1]))
+		connstringsLen := *(*int32)(argArr[2])
+		connStrings := (unsafe.Slice(conStringsPtr, connstringsLen))
+		di := (*driverInfo)(userData)
+
+		for i := 0; i < int(connstringsLen); i++ {
+			connStrings[i].Set("")
+		}
+
+		result, err := di.driver.Scan()
+		if err != LibNfcSuccess {
+			*(*int32)(ret) = int32(err)
+			return 0
+		}
+
+		maxNum := min(len(result), int(connstringsLen))
+
+		for i := 0; i < maxNum; i++ {
+			cs := result[i]
+			// bin := append([]byte(cs), 0)
+
+			// ptr := (*byte)(unsafe.Pointer(&connStrings[i][0]))
+			// dstSlice := unsafe.Slice(ptr, len(bin))
+			// copy(dstSlice, bin)
+			connStrings[i].Set(cs)
+		}
+
+		_ = ctx
+
+		*(*int32)(ret) = int32(maxNum)
 		return 0
 	})
 	// prepare the closure
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, nil, callback); status != ffi.OK {
+	closureUserData := unsafe.Pointer(di)
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, closureUserData, callback); status != ffi.OK {
 		panic(status)
 	}
 
@@ -159,10 +196,9 @@ func RegisterDriver(driver *Driver) error {
 		scan:     callback,
 	}
 	di.nd = &nd
+	di.ndPtr = nfcDriverPtr(di.nd)
 
-	driverPtr := nfcDriverPtr(di.nd)
-
-	ret := libNfcRegisterDriver(driverPtr)
+	ret := libNfcRegisterDriver(di.ndPtr)
 	if ret == 0 {
 		goDrivers = append(goDrivers, di)
 		return nil

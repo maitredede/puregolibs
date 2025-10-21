@@ -63,7 +63,7 @@ func (c *NfcContext) openReal(connstring *string) (*NfcDevice, error) {
 		return nil, errors.New("unable to open NFC device")
 	}
 	if isLibErrorPtr(unsafe.Pointer(pnd)) {
-		return nil, libNfcError(pnd).Error()
+		return nil, LibNfcError(pnd).Error()
 	}
 
 	device := &NfcDevice{
@@ -85,6 +85,17 @@ func (s nfcConnString) String() string {
 		bin = s[:nullByte]
 	}
 	return string(bin)
+}
+
+func (s *nfcConnString) Set(value string) {
+	for i := 0; i < nfcBufSizeConnString; i++ {
+		s[i] = 0
+	}
+	binValue := []byte(value)
+	m := min(len(binValue), nfcBufSizeConnString)
+	for i := 0; i < m; i++ {
+		s[i] = binValue[i]
+	}
 }
 
 func (c *NfcContext) ListDevices() ([]string, error) {

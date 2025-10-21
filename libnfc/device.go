@@ -24,13 +24,12 @@ func (d *NfcDevice) Close() error {
 	return nil
 }
 
-func (d *NfcDevice) Name() (string, error) {
+func (d *NfcDevice) Name() string {
 	if d.ptr == nil {
-		return "", ErrDeviceClosed
+		return ""
 	}
 
-	name := libNfcDeviceGetName(d.ptr)
-	return name, nil
+	return libNfcDeviceGetName(d.ptr)
 }
 
 func (d *NfcDevice) ConnString() (string, error) {
@@ -42,12 +41,12 @@ func (d *NfcDevice) ConnString() (string, error) {
 	return name, nil
 }
 
-func (d *NfcDevice) lastError() libNfcError {
+func (d *NfcDevice) lastError() LibNfcError {
 	if d.ptr == nil {
 		panic(ErrDeviceClosed)
 	}
 	e := libNfcDeviceGetLastError(d.ptr)
-	return libNfcError(e)
+	return LibNfcError(e)
 }
 
 func (d *NfcDevice) GetInformationAbout() (string, error) {
@@ -58,7 +57,7 @@ func (d *NfcDevice) GetInformationAbout() (string, error) {
 	var strinfo unsafe.Pointer
 	ret := libNfcDeviceGetInformationAbout(d.ptr, &strinfo)
 	if isLibErrorInt32(ret) {
-		return "", libNfcError(ret).Error()
+		return "", LibNfcError(ret).Error()
 	}
 	defer libNfcFree(strinfo)
 
@@ -72,4 +71,35 @@ func (d *NfcDevice) Ptr() unsafe.Pointer {
 
 func (d *NfcDevice) InitiatorListPassiveTargets(m Modulation) ([]NfcTarget, error) {
 	return nil, errors.New("work in progress")
+}
+
+type nativeNfcDevice struct {
+	ctx      nfcContextPtr
+	drv      nfcDriverPtr
+	drvData  unsafe.Pointer
+	chipData unsafe.Pointer
+	//remaining not needed
+}
+
+func (d *NfcDevice) DriverPtr() unsafe.Pointer {
+	if d.ptr == nil {
+		return nil
+	}
+
+	nd := (*nativeNfcDevice)(d.ptr)
+	return unsafe.Pointer(nd.drv)
+}
+
+func (d *NfcDevice) GoDriver() *Driver {
+	drvPtr := nfcDriverPtr(d.DriverPtr())
+	if drvPtr == nil {
+		return nil
+	}
+
+	for _, d := range goDrivers {
+		if d.ndPtr == drvPtr {
+			return d.driver
+		}
+	}
+	return nil
 }

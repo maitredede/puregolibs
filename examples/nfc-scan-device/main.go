@@ -54,11 +54,7 @@ func main() {
 			fmt.Printf("nfc_open failed for %s: %v\n", devConString, err)
 			continue
 		}
-		name, err := pnd.Name()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		name := pnd.Name()
 		connStr, err := pnd.ConnString()
 		if err != nil {
 			fmt.Println(err)

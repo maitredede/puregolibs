@@ -13,10 +13,7 @@ func TestDeviceOpenClose(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name, err := dev.Name()
-	if err != nil {
-		t.Fatal(err)
-	}
+	name := dev.Name()
 	t.Logf("opened nfc device: %s", name)
 	connString, err := dev.ConnString()
 	if err != nil {

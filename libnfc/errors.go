@@ -9,86 +9,86 @@ import (
 	"github.com/maitredede/puregolibs/tools"
 )
 
-type libNfcError uintptr
+type LibNfcError uintptr
 
 var (
-	libNfcSuccess      libNfcError = 0
-	libNfcEIO          libNfcError = libNfcSuccess - 1 // libNfcError(^uintptr(0))
-	libNfcEInvArg      libNfcError = libNfcSuccess - 2
-	libNfcEDEVNOTSUPP  libNfcError = libNfcSuccess - 3
-	libNfcENOTSUCHDEV  libNfcError = libNfcSuccess - 4
-	libNfcEOVFLOW      libNfcError = libNfcSuccess - 5
-	libNfcETIMEOUT     libNfcError = libNfcSuccess - 6
-	libNfcEOPABORTED   libNfcError = libNfcSuccess - 7
-	libNfcENOTIMPL     libNfcError = libNfcSuccess - 8
-	libNfcETGRELEASED  libNfcError = libNfcSuccess - 10
-	libNfcERFTRANS     libNfcError = libNfcSuccess - 20
-	libNfcEMFCAUTHFAIL libNfcError = libNfcSuccess - 30
-	libNfcESOFT        libNfcError = libNfcSuccess - 80
-	libNfcECHIP        libNfcError = libNfcSuccess - 90
+	LibNfcSuccess      LibNfcError = 0
+	LibNfcEIO          LibNfcError = LibNfcSuccess - 1 // libNfcError(^uintptr(0))
+	LibNfcEInvArg      LibNfcError = LibNfcSuccess - 2
+	LibNfcEDEVNOTSUPP  LibNfcError = LibNfcSuccess - 3
+	LibNfcENOTSUCHDEV  LibNfcError = LibNfcSuccess - 4
+	LibNfcEOVFLOW      LibNfcError = LibNfcSuccess - 5
+	LibNfcETIMEOUT     LibNfcError = LibNfcSuccess - 6
+	LibNfcEOPABORTED   LibNfcError = LibNfcSuccess - 7
+	LibNfcENOTIMPL     LibNfcError = LibNfcSuccess - 8
+	LibNfcETGRELEASED  LibNfcError = LibNfcSuccess - 10
+	LibNfcERFTRANS     LibNfcError = LibNfcSuccess - 20
+	LibNfcEMFCAUTHFAIL LibNfcError = LibNfcSuccess - 30
+	LibNfcESOFT        LibNfcError = LibNfcSuccess - 80
+	LibNfcECHIP        LibNfcError = LibNfcSuccess - 90
 )
 
-func (e libNfcError) Error() error {
+func (e LibNfcError) Error() error {
 	switch e {
-	case libNfcEIO:
+	case LibNfcEIO:
 		return errors.New("libNfcEIO")
-	case libNfcEInvArg:
+	case LibNfcEInvArg:
 		return errors.New("libNfcEInvArg")
-	case libNfcEDEVNOTSUPP:
+	case LibNfcEDEVNOTSUPP:
 		return errors.New("libNfcEDEVNOTSUPP")
-	case libNfcENOTSUCHDEV:
+	case LibNfcENOTSUCHDEV:
 		return errors.New("libNfcENOTSUCHDEV")
-	case libNfcEOVFLOW:
+	case LibNfcEOVFLOW:
 		return errors.New("libNfcEOVFLOW")
-	case libNfcETIMEOUT:
+	case LibNfcETIMEOUT:
 		return errors.New("libNfcETIMEOUT")
-	case libNfcEOPABORTED:
+	case LibNfcEOPABORTED:
 		return errors.New("libNfcEOPABORTED")
-	case libNfcENOTIMPL:
+	case LibNfcENOTIMPL:
 		return errors.New("libNfcENOTIMPL")
-	case libNfcETGRELEASED:
+	case LibNfcETGRELEASED:
 		return errors.New("libNfcETGRELEASED")
-	case libNfcERFTRANS:
+	case LibNfcERFTRANS:
 		return errors.New("libNfcERFTRANS")
-	case libNfcEMFCAUTHFAIL:
+	case LibNfcEMFCAUTHFAIL:
 		return errors.New("libNfcEMFCAUTHFAIL")
-	case libNfcESOFT:
+	case LibNfcESOFT:
 		return errors.New("libNfcESOFT")
-	case libNfcECHIP:
+	case LibNfcECHIP:
 		return errors.New("libNfcECHIP")
 	}
 	return fmt.Errorf("unkown nfc error: %v", int64(e))
 }
 
-var _ tools.Timeout = (*libNfcError)(nil)
+var _ tools.Timeout = (*LibNfcError)(nil)
 
-func (e libNfcError) Timeout() bool {
-	return e == libNfcETIMEOUT
+func (e LibNfcError) Timeout() bool {
+	return e == LibNfcETIMEOUT
 }
 
-var errList []libNfcError = []libNfcError{
-	libNfcEIO,
-	libNfcEInvArg,
-	libNfcEDEVNOTSUPP,
-	libNfcENOTSUCHDEV,
-	libNfcEOVFLOW,
-	libNfcETIMEOUT,
-	libNfcEOPABORTED,
-	libNfcENOTIMPL,
-	libNfcETGRELEASED,
-	libNfcERFTRANS,
-	libNfcEMFCAUTHFAIL,
-	libNfcESOFT,
-	libNfcECHIP,
+var errList []LibNfcError = []LibNfcError{
+	LibNfcEIO,
+	LibNfcEInvArg,
+	LibNfcEDEVNOTSUPP,
+	LibNfcENOTSUCHDEV,
+	LibNfcEOVFLOW,
+	LibNfcETIMEOUT,
+	LibNfcEOPABORTED,
+	LibNfcENOTIMPL,
+	LibNfcETGRELEASED,
+	LibNfcERFTRANS,
+	LibNfcEMFCAUTHFAIL,
+	LibNfcESOFT,
+	LibNfcECHIP,
 }
 
 func isLibErrorInt32(ret int32) bool {
-	is := slices.Contains(errList, libNfcError(ret))
+	is := slices.Contains(errList, LibNfcError(ret))
 	return is
 }
 
 func isLibErrorPtr(ptr unsafe.Pointer) bool {
-	is := slices.Contains(errList, libNfcError(ptr))
+	is := slices.Contains(errList, LibNfcError(ptr))
 	return is
 }
 
