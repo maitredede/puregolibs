@@ -8,32 +8,6 @@ import (
 	"github.com/maitredede/puregolibs/strings"
 )
 
-var (
-	// MifareTag	*freefare_get_tags (nfc_device *device)
-	//libGetTags func(nfcDevice uintptr) *uintptr
-	libGetTags func(nfcDevice unsafe.Pointer) *uintptr
-	// void		 freefare_free_tags (MifareTag *tags)
-	// libFreeTags func(tag *uintptr)
-	libFreeTags func(tags *uintptr)
-	// void		 freefare_free_tag(FreefareTag tag)
-	libFreeTag func(tag uintptr)
-
-	// enum mifare_tag_type freefare_get_tag_type (MifareTag tag)
-	libGetTagType func(tag uintptr) TagType
-	// const char	*freefare_get_tag_friendly_name (MifareTag tag)
-	libGetTagFirendlyName func(tag uintptr) string
-	// char		*freefare_get_tag_uid (MifareTag tag)
-	libGetTagUID func(tag uintptr) uintptr
-
-	// const char	*freefare_strerror (MifareTag tag)
-	libStrError func(tag uintptr) string
-
-	// int		 mifare_classic_connect (MifareTag tag)
-	libMifareClassicConnect func(tag uintptr) int16
-	// int		 mifare_classic_disconnect (MifareTag tag)
-	libMifareClassicDisconnect func(tag uintptr) int16
-)
-
 type TagInfo struct {
 	Type  TagType
 	Name  string

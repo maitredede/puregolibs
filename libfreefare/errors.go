@@ -11,3 +11,4 @@ var _ error = (*ErrorTagClosed)(nil)
 func (e ErrorTagClosed) Error() string {
 	return e.m
 }
+

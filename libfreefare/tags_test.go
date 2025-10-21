@@ -7,11 +7,8 @@ import (
 )
 
 func TestGetTagInfos(t *testing.T) {
-	nv := libnfc.Version()
-	fv := Version()
-
-	t.Logf("libnfc: %s", nv)
-	t.Logf("libfreefare: %s", fv)
+	t.Logf("libnfc: %s", libnfc.Version())
+	t.Logf("libfreefare: %s", Version())
 
 	context, err := libnfc.InitContext()
 	if err != nil {

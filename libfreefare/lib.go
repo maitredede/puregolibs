@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"sync"
+	"unsafe"
 
 	"github.com/ebitengine/purego"
 )
@@ -35,10 +36,6 @@ func mustGetSymbol(sym string) uintptr {
 	return ptr
 }
 
-var (
-	libFree func(ptr uintptr)
-)
-
 func libInitFuncs() {
 	if _, err := getSymbol("freefare_version"); err != nil {
 		libVersion = func() string {
@@ -67,3 +64,42 @@ func libInitFuncs() {
 
 	purego.RegisterLibFunc(&libMifareApplicationRead, initPtr, "mifare_application_read")
 }
+
+var (
+	libVersion func() string
+	libFree    func(ptr uintptr)
+
+	// MifareTag	*freefare_get_tags (nfc_device *device)
+	//libGetTags func(nfcDevice uintptr) *uintptr
+	libGetTags func(nfcDevice unsafe.Pointer) *uintptr
+	// void		 freefare_free_tags (MifareTag *tags)
+	// libFreeTags func(tag *uintptr)
+	libFreeTags func(tags *uintptr)
+	// void		 freefare_free_tag(FreefareTag tag)
+	libFreeTag func(tag uintptr)
+
+	// enum mifare_tag_type freefare_get_tag_type (MifareTag tag)
+	libGetTagType func(tag uintptr) TagType
+	// const char	*freefare_get_tag_friendly_name (MifareTag tag)
+	libGetTagFirendlyName func(tag uintptr) string
+	// char		*freefare_get_tag_uid (MifareTag tag)
+	libGetTagUID func(tag uintptr) uintptr
+
+	// const char	*freefare_strerror (MifareTag tag)
+	libStrError func(tag uintptr) string
+
+	// int		 mifare_classic_connect (MifareTag tag)
+	libMifareClassicConnect func(tag uintptr) int16
+	// int		 mifare_classic_disconnect (MifareTag tag)
+	libMifareClassicDisconnect func(tag uintptr) int16
+
+	// Mad		 mad_read (MifareTag tag)
+	libMadRead func(tag uintptr) uintptr
+	// int		 mad_get_version (Mad mad)
+	libMadGetVersion func(mad uintptr) int16
+	// void		 mad_set_version (Mad mad, const uint8_t version)
+	libMadSetVersion func(mad uintptr, version byte)
+
+	// ssize_t		 mifare_application_read (MifareTag tag, Mad mad, const MadAid aid, void *buf, size_t nbytes, const MifareClassicKey key, const MifareClassicKeyType key_type);
+	libMifareApplicationRead func(tag uintptr, mad uintptr, aid *byte, buf uintptr, nbytes uint32, key *byte, keyType MifareClassicKeyType) int32
+)
