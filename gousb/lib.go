@@ -38,7 +38,16 @@ func mustGetSymbol(sym string) uintptr {
 
 func libInitFuncs() {
 	purego.RegisterLibFunc(&libusbInit, initPtr, "libusb_init")
-	purego.RegisterLibFunc(&libusbInitContext, initPtr, "libusb_init_context")
+	if sym, err := getSymbol("libusb_init_context"); err == nil {
+		purego.RegisterFunc(&libusbInitContext, sym)
+	} else {
+		libusbInitContext = func(ctx *libusbContext, options *NativeLibusbInitOption, numOptions int32) int32 {
+			if options != nil || numOptions > 0 {
+				fmt.Println("WARN : libusb_init_context not found (old version of libusb). falling back to libusb_init")
+			}
+			return libusbInit(ctx)
+		}
+	}
 	purego.RegisterLibFunc(&libusbExit, initPtr, "libusb_exit")
 	purego.RegisterLibFunc(&libusbSetDebug, initPtr, "libusb_set_debug")
 	purego.RegisterLibFunc(&libusbSetLogCb, initPtr, "libusb_set_log_cb")
@@ -83,7 +92,13 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libusbGetDeviceSpeed, initPtr, "libusb_get_device_speed")
 	purego.RegisterLibFunc(&libusbGetMaxPacketSize, initPtr, "libusb_get_max_packet_size")
 	purego.RegisterLibFunc(&libusbGetMaxIsoPacketSize, initPtr, "libusb_get_max_iso_packet_size")
-	purego.RegisterLibFunc(&libusbGetMaxAltPacketSize, initPtr, "libusb_get_max_alt_packet_size")
+	if sym, err := getSymbol("libusb_get_max_alt_packet_size"); err == nil {
+		purego.RegisterFunc(&libusbGetMaxAltPacketSize, sym)
+	} else {
+		libusbGetMaxAltPacketSize = func(dev libusbDevice, interfaceNumber int32, alternateSettings int32, endpoint uint8) int32 {
+			panic("libusb_get_max_alt_packet_size not found (old version of libusb).")
+		}
+	}
 
 	// libusb_get_interface_association_descriptors
 	// libusb_get_active_interface_association_descriptors

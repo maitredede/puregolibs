@@ -34,10 +34,10 @@ func customResourceFetcherCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsaf
 	urlArgPtr := argArr[1]
 
 	closurePtr := *(*unsafe.Pointer)(closureArgPtr)
-	urlPtr := *(*unsafe.Pointer)(urlArgPtr)
+	urlPtr := *(**byte)(urlArgPtr)
 
 	book := (*Book)(closurePtr)
-	url := strings.GoString(uintptr(urlPtr))
+	url := strings.GoString(urlPtr)
 
 	slog.Info(fmt.Sprintf("callback: loading url=%s", url))
 

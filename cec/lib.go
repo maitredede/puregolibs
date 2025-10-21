@@ -38,19 +38,19 @@ func mustGetSymbol(sym string) uintptr {
 }
 
 var (
-	libCecInitialise         func(configuration *NativeConfiguration) uintptr
-	libCecDestroy            func(connection uintptr)
-	libCecOpen               func(connection uintptr, port uintptr, timeout uint32) int32
-	libCecClose              func(connection uintptr)
+	libCecInitialise         func(configuration *NativeConfiguration) connectionPtr
+	libCecDestroy            func(connection connectionPtr)
+	libCecOpen               func(connection connectionPtr, port unsafe.Pointer, timeout uint32) int32
+	libCecClose              func(connection connectionPtr)
 	libCecClearConfiguration func(configuration *NativeConfiguration)
-	libCecSetCallbacks       func(connection uintptr, callbacks /*ICECCallbacks* */ uintptr, cbParam /*void* */ uintptr) int32
-	// libCecDisableCallbacks          func(connection uintptr) int32
-	// libCecEnableCallbacks           func(connection uintptr, cbParam /*void* */ uintptr, callbacks /*ICECCallbacks* */ uintptr) int32
-	libCecFindAdapters             func(connection uintptr, deviceList *nativeAdapter, bufSize byte, devicePath *byte) int8
-	libCecPingAdapters             func(connection uintptr) int32
-	libCecStartBootloader          func(connection uintptr) int32
-	libCecPowerOnDevice            func(connection uintptr, address LogicalAddress) int32
-	libCecStandbyDevice            func(connection uintptr, address LogicalAddress) int32
+	libCecSetCallbacks       func(connection connectionPtr, callbacks /*ICECCallbacks* */ uintptr, cbParam /*void* */ uintptr) int32
+	// libCecDisableCallbacks          func(connection connectionPtr) int32
+	// libCecEnableCallbacks           func(connection connectionPtr, cbParam /*void* */ uintptr, callbacks /*ICECCallbacks* */ uintptr) int32
+	libCecFindAdapters             func(connection connectionPtr, deviceList *nativeAdapter, bufSize byte, devicePath *byte) int8
+	libCecPingAdapters             func(connection connectionPtr) int32
+	libCecStartBootloader          func(connection connectionPtr) int32
+	libCecPowerOnDevice            func(connection connectionPtr, address LogicalAddress) int32
+	libCecStandbyDevice            func(connection connectionPtr, address LogicalAddress) int32
 	libCecSetActiveSource          func() int32
 	libCecSetDeckControlMode       func() int32
 	libCecSetDeckInfo              func() int32
@@ -61,15 +61,15 @@ var (
 	libCecSetPhysicalAddress       func() int32
 	libCecSetOsdString             func() int32
 	libCecSwitchMonitoring         func() int32
-	libCecGetDeviceCecVersion      func(connection uintptr, address LogicalAddress) CecVersion
+	libCecGetDeviceCecVersion      func(connection connectionPtr, address LogicalAddress) CecVersion
 	libCecGetDeviceMenuLanguage    func() int32
 	libCecGetDeviceVendorID        func() int32
-	libCecGetDevicePhysicalAddress func(connection uintptr, address LogicalAddress) uint16
+	libCecGetDevicePhysicalAddress func(connection connectionPtr, address LogicalAddress) uint16
 	libCecGetActiveSource          func() int32
 	libCecIsActiveSource           func() int32
 	libCecGetDevicePowerStatus     func() int32
 	libCecPollDevice               func() int32
-	libCecGetActiveDevices         func(connection uintptr) *LogicalAddresses
+	libCecGetActiveDevices         func(connection connectionPtr) *LogicalAddresses
 	libCecIsActiveDevice           func() int32
 	libCecIsActiveDeviceType       func() int32
 	libCecSetHdmiPort              func() int32
@@ -82,7 +82,7 @@ var (
 	libCecSetStreamPathLogical     func() int32
 	libCecSetStreamPathPhysical    func() int32
 	libCecGetLogicalAddresses      func() int32
-	libCecGetCurrentConfiguration  func(connection uintptr, configuration *NativeConfiguration) int32
+	libCecGetCurrentConfiguration  func(connection connectionPtr, configuration *NativeConfiguration) int32
 	libCecCanSaveConfiguration     func() int32
 	// libCecCanPersistConfiguration   func() int32
 	// libCecPersistConfiguration      func() int32
@@ -90,27 +90,27 @@ var (
 	libCecRescanDevices             func()
 	libCecIsLibCecActiveSource      func() int32
 	libCecGetDeviceInformation      func() int32
-	libCecGetLibInfo                func(connection uintptr) string
-	libCecInitVideoStandalone       func(connection uintptr)
-	libCecGetAdapterVendorID        func(connection uintptr) uint16
-	libCecGetAdapterProductID       func(connection uintptr) uint16
-	libCecAudioToggleMute           func(connection uintptr) byte
-	libCecAudioMute                 func(connection uintptr) byte
-	libCecAudioUnmute               func(connection uintptr) byte
-	libCecAudioGetStatus            func(connection uintptr) byte
-	libCecDetectAdapters            func(connection uintptr) int8
-	libCecMenuStateToString         func(state MenuState, buf uintptr, bufSize int32)
-	libCecCecVersionToString        func(version CecVersion, buf uintptr, bufSize int32)
-	libCecPowerStatusToString       func(status PowerStatus, buf uintptr, bufSize int32)
-	libCecLogicalAddressToString    func(address LogicalAddress, buf uintptr, bufSize int32)
-	libCecDeckControlModeToString   func(mode DeckControlMode, buf uintptr, bufSize int32)
-	libCecDeckStatusToString        func(status DeckInfo, buf uintptr, bufSize int32)
-	libCecOpCodeToString            func(opcode OpCode, buf uintptr, bufSize int32)
-	libCecSystemAudioStatusToString func(status SystemAudioStatus, buf uintptr, bufSize int32)
-	libCecVendorIDToString          func(vendor VendorID, buf uintptr, bufSize int32)
-	libCecUserControlKeyToString    func(key UserControlCode, buf uintptr, bufSize int32)
-	libCecAdapterTypeToString       func(aType AdapterType, buf uintptr, bufSize int32)
-	libCecVersionToString           func(version uint32, buf uintptr, bufSize int32)
+	libCecGetLibInfo                func(connection connectionPtr) string
+	libCecInitVideoStandalone       func(connection connectionPtr)
+	libCecGetAdapterVendorID        func(connection connectionPtr) uint16
+	libCecGetAdapterProductID       func(connection connectionPtr) uint16
+	libCecAudioToggleMute           func(connection connectionPtr) byte
+	libCecAudioMute                 func(connection connectionPtr) byte
+	libCecAudioUnmute               func(connection connectionPtr) byte
+	libCecAudioGetStatus            func(connection connectionPtr) byte
+	libCecDetectAdapters            func(connection connectionPtr) int8
+	libCecMenuStateToString         func(state MenuState, buf unsafe.Pointer, bufSize int32)
+	libCecCecVersionToString        func(version CecVersion, buf unsafe.Pointer, bufSize int32)
+	libCecPowerStatusToString       func(status PowerStatus, buf unsafe.Pointer, bufSize int32)
+	libCecLogicalAddressToString    func(address LogicalAddress, buf unsafe.Pointer, bufSize int32)
+	libCecDeckControlModeToString   func(mode DeckControlMode, buf unsafe.Pointer, bufSize int32)
+	libCecDeckStatusToString        func(status DeckInfo, buf unsafe.Pointer, bufSize int32)
+	libCecOpCodeToString            func(opcode OpCode, buf unsafe.Pointer, bufSize int32)
+	libCecSystemAudioStatusToString func(status SystemAudioStatus, buf unsafe.Pointer, bufSize int32)
+	libCecVendorIDToString          func(vendor VendorID, buf unsafe.Pointer, bufSize int32)
+	libCecUserControlKeyToString    func(key UserControlCode, buf unsafe.Pointer, bufSize int32)
+	libCecAdapterTypeToString       func(aType AdapterType, buf unsafe.Pointer, bufSize int32)
+	libCecVersionToString           func(version uint32, buf unsafe.Pointer, bufSize int32)
 )
 
 func libInitFuncs() {
@@ -123,17 +123,9 @@ func libInitFuncs() {
 	if err != nil {
 		panic(err)
 	}
-	libCecInitialise = func(configuration *NativeConfiguration) uintptr {
-		var ret uintptr
-
-		retPtr := unsafe.Pointer(&ret)
-		cfgPtr := unsafe.Pointer(configuration)
-
-		argsPtr := []unsafe.Pointer{
-			unsafe.Pointer(&cfgPtr),
-		}
-
-		ffi.Call(&cifInitialise, symInitialize, retPtr, argsPtr...)
+	libCecInitialise = func(configuration *NativeConfiguration) connectionPtr {
+		var ret connectionPtr
+		ffi.Call(&cifInitialise, symInitialize, unsafe.Pointer(&ret), unsafe.Pointer(&configuration))
 		return ret
 	}
 

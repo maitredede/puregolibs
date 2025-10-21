@@ -31,7 +31,8 @@ type Configuration struct {
 type DeviceNameString [OSDNameSize]byte
 
 func (s DeviceNameString) String() string {
-	return strings.GoString(uintptr(unsafe.Pointer(&s[0])))
+	p := &s[0]
+	return strings.GoStringN(p, OSDNameSize)
 }
 
 func CDeviceNameString(name string) DeviceNameString {
@@ -64,8 +65,8 @@ type NativeConfiguration struct {
 	ActivateSource     byte
 	PowerOffOnStandby  byte
 
-	CallbackParam uintptr
-	//Callbacks     uintptr
+	CallbackParam unsafe.Pointer
+	//Callbacks     unsafe.Pointer
 	Callbacks *nativeICECCallbacks
 
 	LogicalAddress    LogicalAddress

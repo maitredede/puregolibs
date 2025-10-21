@@ -2,47 +2,15 @@ package imagick
 
 import (
 	"errors"
-	"fmt"
-	"runtime"
 	"sync"
 	"unsafe"
-
-	"github.com/ebitengine/purego"
 )
 
 var (
 	initLckOnce  sync.Mutex
-	libWand      uintptr
 	libWandError error
-	libCore      uintptr
 	libCoreError error
 )
-
-func getCoreLibrary() (string, error) {
-	switch runtime.GOOS {
-	// case "darwin":
-	// 	return "libMagickCore.dylib"
-	case "linux":
-		return "libMagickCore-7.Q16.so", nil
-	// case "windows":
-	// 	return "libMagickCore-7.dll"
-	default:
-		return "", fmt.Errorf("GOOS=%s is not supported", runtime.GOOS)
-	}
-}
-
-func getWandLibrary() (string, error) {
-	switch runtime.GOOS {
-	// case "darwin":
-	// 	return "libMagickWand.dylib"
-	case "linux":
-		return "libMagickWand-7.Q16.so", nil
-	// case "windows":
-	// 	return "libMagickWand-7.dll"
-	default:
-		return "", fmt.Errorf("GOOS=%s is not supported", runtime.GOOS)
-	}
-}
 
 func libInit() {
 	initLckOnce.Lock()
@@ -53,22 +21,14 @@ func libInit() {
 	}
 
 	var initFuncs bool
-	if libCore == 0 {
-		var name string
-		name, libCoreError = getCoreLibrary()
+	if !isLibLoaded(libCore) {
+		libCore, libCoreError = loadLib(libCoreName)
 		if libCoreError == nil {
-			libCore, libCoreError = purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_GLOBAL)
-			if libCoreError == nil {
-				initFuncs = true
-			}
+			initFuncs = true
 		}
 	}
-	if libWand == 0 {
-		var name string
-		name, libWandError = getWandLibrary()
-		if libWandError == nil {
-			libWand, libWandError = purego.Dlopen(name, purego.RTLD_NOW|purego.RTLD_GLOBAL)
-		}
+	if !isLibLoaded(libWand) {
+		libWand, libWandError = loadLib(libWandName)
 		if libWandError == nil {
 			initFuncs = true
 		}
@@ -80,25 +40,25 @@ func libInit() {
 		return
 	}
 
-	purego.RegisterLibFunc(&libCoreGetVersion, libCore, "GetMagickVersion")
-	purego.RegisterLibFunc(&libCoreGenesis, libCore, "MagickCoreGenesis")
-	purego.RegisterLibFunc(&libCoreTerminus, libCore, "MagickCoreTerminus")
+	RegisterLibFunc(&libCoreGetVersion, libCore, "GetMagickVersion")
+	RegisterLibFunc(&libCoreGenesis, libCore, "MagickCoreGenesis")
+	RegisterLibFunc(&libCoreTerminus, libCore, "MagickCoreTerminus")
 
-	purego.RegisterLibFunc(&libWandGetVersion, libWand, "GetMagickVersion")
-	purego.RegisterLibFunc(&libWandIsMagickCoreInstantiated, libWand, "IsMagickCoreInstantiated")
-	purego.RegisterLibFunc(&libWandIsMagickWandInstantiated, libWand, "IsMagickWandInstantiated")
-	purego.RegisterLibFunc(&libWandGenesis, libWand, "MagickWandGenesis")
-	purego.RegisterLibFunc(&libWandTerminus, libWand, "MagickWandTerminus")
-	purego.RegisterLibFunc(&libWandNewMagickWand, libWand, "NewMagickWand")
-	purego.RegisterLibFunc(&libWandIsMagickWand, libWand, "IsMagickWand")
-	purego.RegisterLibFunc(&libWandDestroyMagickWand, libWand, "DestroyMagickWand")
-	purego.RegisterLibFunc(&libWandMagickReadImageBlob, libWand, "MagickReadImageBlob")
-	purego.RegisterLibFunc(&libWandMagickSetImageFormat, libWand, "MagickSetImageFormat")
-	purego.RegisterLibFunc(&libWandMagickGetImageBlob, libWand, "MagickGetImageBlob")
-	purego.RegisterLibFunc(&libWandMagickRelinquishMemory, libWand, "MagickRelinquishMemory")
-	purego.RegisterLibFunc(&libWandMagickGetInterlaceScheme, libWand, "MagickGetInterlaceScheme")
-	purego.RegisterLibFunc(&libWandMagickSetInterlaceScheme, libWand, "MagickSetInterlaceScheme")
-	purego.RegisterLibFunc(&libWandMagickGetException, libWand, "MagickGetException")
+	RegisterLibFunc(&libWandGetVersion, libWand, "GetMagickVersion")
+	RegisterLibFunc(&libWandIsMagickCoreInstantiated, libWand, "IsMagickCoreInstantiated")
+	RegisterLibFunc(&libWandIsMagickWandInstantiated, libWand, "IsMagickWandInstantiated")
+	RegisterLibFunc(&libWandGenesis, libWand, "MagickWandGenesis")
+	RegisterLibFunc(&libWandTerminus, libWand, "MagickWandTerminus")
+	RegisterLibFunc(&libWandNewMagickWand, libWand, "NewMagickWand")
+	RegisterLibFunc(&libWandIsMagickWand, libWand, "IsMagickWand")
+	RegisterLibFunc(&libWandDestroyMagickWand, libWand, "DestroyMagickWand")
+	RegisterLibFunc(&libWandMagickReadImageBlob, libWand, "MagickReadImageBlob")
+	RegisterLibFunc(&libWandMagickSetImageFormat, libWand, "MagickSetImageFormat")
+	RegisterLibFunc(&libWandMagickGetImageBlob, libWand, "MagickGetImageBlob")
+	RegisterLibFunc(&libWandMagickRelinquishMemory, libWand, "MagickRelinquishMemory")
+	RegisterLibFunc(&libWandMagickGetInterlaceScheme, libWand, "MagickGetInterlaceScheme")
+	RegisterLibFunc(&libWandMagickSetInterlaceScheme, libWand, "MagickSetInterlaceScheme")
+	RegisterLibFunc(&libWandMagickGetException, libWand, "MagickGetException")
 }
 
 var (

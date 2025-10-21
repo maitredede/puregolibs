@@ -1,15 +1,12 @@
 package cec
 
 import (
-	"os"
 	"testing"
 
 	"github.com/jupiterrider/ffi"
 )
 
 func TestInitExit(t *testing.T) {
-	e := os.Getenv("FFI_NO_EMBED")
-	t.Logf("FFI_NO_EMBED=%s", e)
 	v := ffi.GetVersion()
 	vn := ffi.GetVersionNumber()
 	t.Logf("using libffi: %s (%d)", v, vn)
@@ -17,17 +14,17 @@ func TestInitExit(t *testing.T) {
 	libInit()
 
 	callbacks := Callbacks{
-		LogMessage: func(cbparam any, message LogMessage) {
-			t.Logf("log: %v: %s", message.Level, message.Message)
-		},
+		// LogMessage: func(cbparam any, message LogMessage) {
+		// 	t.Logf("log: %v: %s", message.Level, message.Message)
+		// },
 		KeyPress: func(cbparam any, key Keypress) {
 			t.Logf("keypress: %v", key)
 		},
-		CommandReceived: func(cbparam any, command Command) {
-			t.Logf("cmdReceived: %v", command)
-		},
+		// CommandReceived: func(cbparam any, command Command) {
+		// 	t.Logf("cmdReceived: %v", command)
+		// },
 		ConfigurationChanged: func(cbparam any, configuration Configuration) {
-			t.Logf("cfgChanged: %v", configuration)
+			t.Logf("cfgChanged: %+v", configuration)
 		},
 		Alert: func(cbparam any, alert Alert, param Parameter) {
 			t.Logf("alert: %v %v", alert, param)

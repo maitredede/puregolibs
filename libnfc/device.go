@@ -61,7 +61,7 @@ func (d *NfcDevice) GetInformationAbout() (string, error) {
 	}
 	defer libNfcFree(strinfo)
 
-	info := strings.GoString(uintptr(strinfo))
+	info := strings.GoString((*byte)(strinfo))
 	return info, nil
 }
 

@@ -57,7 +57,7 @@ func TestListDrivers(t *testing.T) {
 	}
 	t.Logf("found %d native drivers:", len(drivers))
 	for _, nd := range drivers {
-		name := strings.GoStringN(uintptr(nd.name), 256)
+		name := strings.GoStringN((*byte)(nd.name), 256)
 		t.Logf("driver: %s (scan %s)", name, nd.scanType)
 	}
 }

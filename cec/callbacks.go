@@ -7,14 +7,14 @@ import (
 )
 
 type nativeICECCallbacks struct {
-	logMessage           uintptr // void (CEC_CDECL* logMessage)(void* cbparam, const cec_log_message* message);
-	keyPress             uintptr // void (CEC_CDECL* keyPress)(void* cbparam, const cec_keypress* key);
-	commandReceived      uintptr // void (CEC_CDECL* commandReceived)(void* cbparam, const cec_command* command);
-	configurationChanged uintptr // void (CEC_CDECL* configurationChanged)(void* cbparam, const libcec_configuration* configuration);
-	alert                uintptr // void (CEC_CDECL* alert)(void* cbparam, const libcec_alert alert, const libcec_parameter param);
-	menuStateChanged     uintptr // int (CEC_CDECL* menuStateChanged)(void* cbparam, const cec_menu_state state);
-	sourceActivated      uintptr // void (CEC_CDECL* sourceActivated)(void* cbParam, const cec_logical_address logicalAddress, const uint8_t bActivated);
-	commandHandler       uintptr // int (CEC_CDECL* commandHandler)(void* cbparam, const cec_command* command);
+	logMessage           unsafe.Pointer // void (CEC_CDECL* logMessage)(void* cbparam, const cec_log_message* message);
+	keyPress             unsafe.Pointer // void (CEC_CDECL* keyPress)(void* cbparam, const cec_keypress* key);
+	commandReceived      unsafe.Pointer // void (CEC_CDECL* commandReceived)(void* cbparam, const cec_command* command);
+	configurationChanged unsafe.Pointer // void (CEC_CDECL* configurationChanged)(void* cbparam, const libcec_configuration* configuration);
+	alert                unsafe.Pointer // void (CEC_CDECL* alert)(void* cbparam, const libcec_alert alert, const libcec_parameter param);
+	menuStateChanged     unsafe.Pointer // int (CEC_CDECL* menuStateChanged)(void* cbparam, const cec_menu_state state);
+	sourceActivated      unsafe.Pointer // void (CEC_CDECL* sourceActivated)(void* cbParam, const cec_logical_address logicalAddress, const uint8_t bActivated);
+	commandHandler       unsafe.Pointer // int (CEC_CDECL* commandHandler)(void* cbparam, const cec_command* command);
 }
 
 type LogMessageCallback func(cbparam any, message LogMessage)
@@ -91,9 +91,9 @@ func logMessageCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, 
 	return 0
 }
 
-func buildCallbackLogMessage(logCB LogMessageCallback) (uintptr, func()) {
+func buildCallbackLogMessage(logCB LogMessageCallback) (unsafe.Pointer, func()) {
 	if logCB == nil {
-		return 0, func() {}
+		return nil, func() {}
 	}
 
 	// allocate the closure function
@@ -128,7 +128,7 @@ func buildCallbackLogMessage(logCB LogMessageCallback) (uintptr, func()) {
 		ffi.ClosureFree(closure)
 	}
 
-	return uintptr(callback), dispose
+	return callback, dispose
 }
 
 func keypressCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
@@ -145,9 +145,9 @@ func keypressCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, us
 	return 0
 }
 
-func buildCallbackKeyPress(keypressCB KeyPressCallback) (uintptr, func()) {
+func buildCallbackKeyPress(keypressCB KeyPressCallback) (unsafe.Pointer, func()) {
 	if keypressCB == nil {
-		return 0, func() {}
+		return nil, func() {}
 	}
 
 	// allocate the closure function
@@ -182,7 +182,7 @@ func buildCallbackKeyPress(keypressCB KeyPressCallback) (uintptr, func()) {
 		ffi.ClosureFree(closure)
 	}
 
-	return uintptr(callback), dispose
+	return callback, dispose
 }
 
 func commandReceivedCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
@@ -199,9 +199,9 @@ func commandReceivedCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Poin
 	return 0
 }
 
-func buildCallbackCommandReceived(cmdCB CommandReceivedCallback) (uintptr, func()) {
+func buildCallbackCommandReceived(cmdCB CommandReceivedCallback) (unsafe.Pointer, func()) {
 	if cmdCB == nil {
-		return 0, func() {}
+		return nil, func() {}
 	}
 
 	// allocate the closure function
@@ -235,7 +235,7 @@ func buildCallbackCommandReceived(cmdCB CommandReceivedCallback) (uintptr, func(
 		ffi.ClosureFree(closure)
 	}
 
-	return uintptr(callback), dispose
+	return callback, dispose
 }
 
 func configurationChangedCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
@@ -252,9 +252,9 @@ func configurationChangedCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe
 	return 0
 }
 
-func buildCallbackConfigurationChanged(cfgCB ConfigurationChangedCallback) (uintptr, func()) {
+func buildCallbackConfigurationChanged(cfgCB ConfigurationChangedCallback) (unsafe.Pointer, func()) {
 	if cfgCB == nil {
-		return 0, func() {}
+		return nil, func() {}
 	}
 
 	// allocate the closure function
@@ -288,7 +288,7 @@ func buildCallbackConfigurationChanged(cfgCB ConfigurationChangedCallback) (uint
 		ffi.ClosureFree(closure)
 	}
 
-	return uintptr(callback), dispose
+	return callback, dispose
 }
 
 func alertCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
@@ -307,9 +307,9 @@ func alertCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userD
 	return 0
 }
 
-func buildCallbackAlert(alertCB AlertCallback) (uintptr, func()) {
+func buildCallbackAlert(alertCB AlertCallback) (unsafe.Pointer, func()) {
 	if alertCB == nil {
-		return 0, func() {}
+		return nil, func() {}
 	}
 
 	// allocate the closure function
@@ -349,7 +349,7 @@ func buildCallbackAlert(alertCB AlertCallback) (uintptr, func()) {
 		ffi.ClosureFree(closure)
 	}
 
-	return uintptr(callback), dispose
+	return callback, dispose
 }
 
 func menuStateChangedCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
@@ -366,9 +366,9 @@ func menuStateChangedCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Poi
 	return 0
 }
 
-func buildCallbackMenuStateChanged(menuCB MenuStateChangedCallback) (uintptr, func()) {
+func buildCallbackMenuStateChanged(menuCB MenuStateChangedCallback) (unsafe.Pointer, func()) {
 	if menuCB == nil {
-		return 0, func() {}
+		return nil, func() {}
 	}
 
 	// allocate the closure function
@@ -408,7 +408,7 @@ func buildCallbackMenuStateChanged(menuCB MenuStateChangedCallback) (uintptr, fu
 		ffi.ClosureFree(closure)
 	}
 
-	return uintptr(callback), dispose
+	return callback, dispose
 }
 
 func sourceActivatedCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
@@ -426,9 +426,9 @@ func sourceActivatedCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Poin
 	return 0
 }
 
-func buildCallbackSourceActivated(srcCB SourceActivatedCallback) (uintptr, func()) {
+func buildCallbackSourceActivated(srcCB SourceActivatedCallback) (unsafe.Pointer, func()) {
 	if srcCB == nil {
-		return 0, func() {}
+		return nil, func() {}
 	}
 
 	// allocate the closure function
@@ -464,7 +464,7 @@ func buildCallbackSourceActivated(srcCB SourceActivatedCallback) (uintptr, func(
 		ffi.ClosureFree(closure)
 	}
 
-	return uintptr(callback), dispose
+	return callback, dispose
 }
 
 func commandHandlerCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
@@ -483,9 +483,9 @@ func commandHandlerCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Point
 	return 0
 }
 
-func buildCallbackCommandHandler(cmdCB CommandHandlerCallback) (uintptr, func()) {
+func buildCallbackCommandHandler(cmdCB CommandHandlerCallback) (unsafe.Pointer, func()) {
 	if cmdCB == nil {
-		return 0, func() {}
+		return nil, func() {}
 	}
 
 	// allocate the closure function
@@ -521,5 +521,5 @@ func buildCallbackCommandHandler(cmdCB CommandHandlerCallback) (uintptr, func())
 		ffi.ClosureFree(closure)
 	}
 
-	return uintptr(callback), dispose
+	return callback, dispose
 }

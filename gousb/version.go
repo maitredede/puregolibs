@@ -48,10 +48,10 @@ func GetVersion() Version {
 		Nano:  int(nativeV.nano),
 	}
 	if nativeV.rc != nil {
-		v.RC = strings.GoString(uintptr(nativeV.rc))
+		v.RC = strings.GoString((*byte)(nativeV.rc))
 	}
 	if nativeV.describe != nil {
-		v.Describe = strings.GoString(uintptr(nativeV.describe))
+		v.Describe = strings.GoString((*byte)(nativeV.describe))
 	}
 	return v
 }

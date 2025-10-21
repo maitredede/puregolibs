@@ -57,14 +57,14 @@ func convertOptionDescriptor(desc *internal.SANE_Option_Descriptor, number int) 
 		Cap:            Cap(desc.Cap),
 		ConstraintType: ConstraintType(desc.ConstraintType),
 	}
-	if desc.Name != 0 {
-		d.Name = strings.GoString(desc.Name)
+	if desc.Name != nil {
+		d.Name = strings.GoString((*byte)(desc.Name))
 	}
-	if desc.Title != 0 {
-		d.Title = strings.GoString(desc.Title)
+	if desc.Title != nil {
+		d.Title = strings.GoString((*byte)(desc.Title))
 	}
-	if desc.Desc != 0 {
-		d.Description = strings.GoString(desc.Desc)
+	if desc.Desc != nil {
+		d.Description = strings.GoString((*byte)(desc.Desc))
 	}
 
 	switch d.ConstraintType {
@@ -103,7 +103,7 @@ func convertOptionDescriptor(desc *internal.SANE_Option_Descriptor, number int) 
 			}
 			ci++
 
-			s := strings.GoString(uintptr(unsafe.Pointer(p)))
+			s := strings.GoString((*byte)(unsafe.Pointer(p)))
 			strs = append(strs, s)
 		}
 		d.Constraint = strs
@@ -209,7 +209,7 @@ func (d OptionDescriptor) GetValueString() (string, error) {
 		info := infoFromValue(flags)
 		slog.Warn(fmt.Sprintf("getValueString(%d) (%s) info=%+v", d.Number, d.Name, info))
 	}
-	valStr := strings.GoString(uintptr(valPtr))
+	valStr := strings.GoString((*byte)(valPtr))
 	return valStr, nil
 }
 

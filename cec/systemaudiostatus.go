@@ -18,7 +18,7 @@ func (s SystemAudioStatus) String() string {
 
 	buffSize := int32(128)
 	buff := make([]byte, buffSize)
-	buffPtr := uintptr(unsafe.Pointer(&buff[0]))
+	buffPtr := unsafe.Pointer(&buff[0])
 	libCecSystemAudioStatusToString(s, buffPtr, buffSize)
-	return strings.GoStringN(buffPtr, int(buffSize))
+	return strings.GoStringN((*byte)(buffPtr), int(buffSize))
 }

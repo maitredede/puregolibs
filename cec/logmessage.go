@@ -2,7 +2,6 @@ package cec
 
 import (
 	"time"
-	"unsafe"
 
 	"github.com/maitredede/puregolibs/strings"
 )
@@ -13,18 +12,15 @@ type LogMessage struct {
 	Time    time.Time
 }
 type nativeLogMessage struct {
-	message uintptr
+	message *byte
 	level   LogLevel
 	time    int64
 }
 
 func (n nativeLogMessage) Go() LogMessage {
 	str := ""
-	if n.message != 0 {
-		ptr := *(*uintptr)(unsafe.Pointer(n.message))
-		if ptr != 0 {
-			str = strings.GoString(ptr)
-		}
+	if n.message != nil {
+		str = strings.GoString(n.message)
 	}
 
 	msg := LogMessage{

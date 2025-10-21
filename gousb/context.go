@@ -330,7 +330,7 @@ func (c *Context) SetOptionLogCallback(logCB LogCallback) error {
 
 		ctxPtr := *(*libusbContext)(argsArr[0])
 		level := *(*LogLevel)(argsArr[1])
-		strPtr := *(*unsafe.Pointer)(argsArr[2])
+		strPtr := *(**byte)(argsArr[2])
 
 		ctx := func(ctxPtr libusbContext) *Context {
 			contextMapLck.Lock()
@@ -342,7 +342,7 @@ func (c *Context) SetOptionLogCallback(logCB LogCallback) error {
 			}
 			return nil
 		}(ctxPtr)
-		str := strings.GoString(uintptr(strPtr))
+		str := strings.GoString(strPtr)
 
 		logCB(ctx, level, str)
 		return 0

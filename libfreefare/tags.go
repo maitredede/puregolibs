@@ -147,7 +147,7 @@ func (t *MifareTag) UID() string {
 	uidPtr := libGetTagUID(t.ptr)
 	defer libFree(uidPtr)
 
-	return strings.GoString(uidPtr)
+	return strings.GoString((*byte)(unsafe.Pointer(uidPtr)))
 }
 
 func (t *MifareTag) Error() string {

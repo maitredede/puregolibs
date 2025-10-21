@@ -11,6 +11,8 @@ import (
 	"github.com/maitredede/puregolibs/strings"
 )
 
+type connectionPtr unsafe.Pointer
+
 const (
 	// default connection timeout in milliseconds
 	CEC_DEFAULT_CONNECT_TIMEOUT               = 10000
@@ -18,7 +20,7 @@ const (
 )
 
 type Conn struct {
-	ptr         uintptr
+	ptr         connectionPtr
 	cfg         *NativeConfiguration
 	cb          *nativeICECCallbacks
 	disposables []func()
@@ -78,19 +80,19 @@ type Conn struct {
 // }
 
 func (c *Conn) Close() error {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return ErrConnectionIsClosed
 	}
 	libCecDestroy(c.ptr)
 	for _, d := range c.disposables {
 		d()
 	}
-	c.ptr = 0
+	c.ptr = nil
 	return nil
 }
 
 func (c *Conn) GetLibInfo() (string, error) {
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		return "", ErrConnectionIsClosed
 	}
 	info := libCecGetLibInfo(c.ptr)
@@ -111,14 +113,14 @@ func Open(name string, deviceName string, appCallbacks Callbacks) (*Conn, error)
 	cfgNative.DeviceName = CDeviceNameString(deviceName)
 	cfgNative.AutodectAddress = 1
 	cfgNative.Callbacks = cb
-	cfgNative.CallbackParam = 0
+	cfgNative.CallbackParam = nil
 
 	c := &Conn{
 		disposables: disposables,
 	}
 	c.cfg = &cfgNative
 	c.ptr = libCecInitialise(c.cfg)
-	if c.ptr == 0 {
+	if c.ptr == nil {
 		for _, d := range disposables {
 			d()
 		}
@@ -146,7 +148,7 @@ func Open(name string, deviceName string, appCallbacks Callbacks) (*Conn, error)
 	return c, nil
 }
 
-func getAdapter(connection uintptr, name string) (Adapter, error) {
+func getAdapter(connection connectionPtr, name string) (Adapter, error) {
 
 	var deviceList [10]nativeAdapter
 	// devicesFound := libcec_find_adapters(connection, &deviceList[0], 10, nil)
@@ -155,8 +157,8 @@ func getAdapter(connection uintptr, name string) (Adapter, error) {
 	var adapter Adapter
 	for i := 0; i < devicesFound; i++ {
 		device := deviceList[i]
-		adapter.Path = strings.GoStringN(uintptr(unsafe.Pointer(&device.path[0])), 1024)
-		adapter.Comm = strings.GoStringN(uintptr(unsafe.Pointer(&device.comm[0])), 1024)
+		adapter.Path = strings.GoStringN(&device.path[0], 1024)
+		adapter.Comm = strings.GoStringN(&device.comm[0], 1024)
 
 		if gostrings.Contains(adapter.Path, name) || gostrings.Contains(adapter.Comm, name) {
 			return adapter, nil
@@ -166,11 +168,11 @@ func getAdapter(connection uintptr, name string) (Adapter, error) {
 	return adapter, errors.New("no Device Found")
 }
 
-func openAdapter(connection uintptr, adapter Adapter) error {
+func openAdapter(connection connectionPtr, adapter Adapter) error {
 	libCecInitVideoStandalone(connection)
 
 	cPort := strings.CString(adapter.Comm)
-	result := libCecOpen(connection, uintptr(unsafe.Pointer(cPort)), CEC_DEFAULT_CONNECT_TIMEOUT)
+	result := libCecOpen(connection, unsafe.Pointer(cPort), CEC_DEFAULT_CONNECT_TIMEOUT)
 	if result < 1 {
 		return fmt.Errorf("adapter '%s' open failed", adapter.Comm)
 	}

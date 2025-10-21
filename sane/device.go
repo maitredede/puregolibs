@@ -15,10 +15,10 @@ type Device struct {
 }
 
 type internalSANE_Device struct {
-	Name   uintptr // char*
-	Vendor uintptr // char*
-	Model  uintptr // char*
-	Type   uintptr // char*
+	Name   unsafe.Pointer // char*
+	Vendor unsafe.Pointer // char*
+	Model  unsafe.Pointer // char*
+	Type   unsafe.Pointer // char*
 }
 
 // var (
@@ -81,10 +81,10 @@ func GetDevices(localOnly bool) ([]Device, error) {
 	for i := 0; devicePtrs[i] != nil; i++ {
 		nd := *devicePtrs[i]
 		d := Device{
-			Name:   strings.GoString(nd.Name),
-			Vendor: strings.GoString(nd.Vendor),
-			Model:  strings.GoString(nd.Model),
-			Type:   strings.GoString(nd.Type),
+			Name:   strings.GoString((*byte)(nd.Name)),
+			Vendor: strings.GoString((*byte)(nd.Vendor)),
+			Model:  strings.GoString((*byte)(nd.Model)),
+			Type:   strings.GoString((*byte)(nd.Type)),
 		}
 		devices = append(devices, d)
 	}
