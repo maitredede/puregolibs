@@ -19,8 +19,7 @@ var (
 )
 
 type Context struct {
-	ptr      libusbContext
-	ptrValid bool
+	ptr libusbContext
 
 	disposables []func()
 
@@ -52,9 +51,8 @@ func Init(options ...InitOption) (*Context, error) {
 	defer contextMapLck.Unlock()
 
 	ctx := &Context{
-		ptr:      ptr,
-		ptrValid: true,
-		devices:  make(map[*Device]bool),
+		ptr:     ptr,
+		devices: make(map[*Device]bool),
 	}
 
 	contextMap[ptr] = ctx
@@ -82,7 +80,7 @@ func (c *Context) HandleEventsTimeout(timeout time.Duration) (int, error) {
 func (c *Context) Close() error {
 	libInit()
 
-	if !c.ptrValid {
+	if c.ptr == nil {
 		return ErrInvalidContext
 	}
 
@@ -100,7 +98,7 @@ func (c *Context) Close() error {
 	defer delete(contextMap, c.ptr)
 
 	libusbExit(c.ptr)
-	c.ptrValid = false
+	c.ptr = nil
 
 	return nil
 }
@@ -117,7 +115,7 @@ func (c *Context) checkOpenDevs() error {
 func (c *Context) SetDebug(level LogLevel) {
 	libInit()
 
-	if !c.ptrValid {
+	if c.ptr == nil {
 		return
 	}
 	libusbSetDebug(c.ptr, level)
@@ -126,7 +124,7 @@ func (c *Context) SetDebug(level LogLevel) {
 func (c *Context) SetLocale(locale string) error {
 	libInit()
 
-	if !c.ptrValid {
+	if c.ptr == nil {
 		return ErrInvalidContext
 	}
 	// cLocale := append([]byte(locale), 0)
@@ -144,7 +142,7 @@ func (c *Context) SetLocale(locale string) error {
 func (c *Context) OpenDevices(opener func(desc *DeviceDesc) bool) ([]*Device, error) {
 	libInit()
 
-	if !c.ptrValid {
+	if c.ptr == nil {
 		return nil, ErrInvalidContext
 	}
 
