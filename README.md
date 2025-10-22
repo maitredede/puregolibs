@@ -42,6 +42,7 @@ https://github.com/plutoprint/plutobook
 ```sh
 apt-get install \
   libcec-dev libp8-platform-dev libudev-dev \
+  libevdi-dev \ # libevdi0-dev
   libfontconfig-dev \
   libusb-1.0-0-dev \
   libmagickwand-dev \

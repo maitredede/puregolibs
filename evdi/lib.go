@@ -45,17 +45,27 @@ func initLib() {
 	purego.RegisterLibFunc(&libEvdiCheckDevice, libPtr, "evdi_check_device")
 	purego.RegisterLibFunc(&libEvdiAddDevice, libPtr, "evdi_add_device")
 	purego.RegisterLibFunc(&libEvdiOpen, libPtr, "evdi_open")
+	purego.RegisterLibFunc(&libEvdiOpenAttachedToFixed, libPtr, "evdi_open_attached_to_fixed")
 	purego.RegisterLibFunc(&libEvdiClose, libPtr, "evdi_close")
 	purego.RegisterLibFunc(&libXorgRunning, libPtr, "Xorg_running")
 	// purego.RegisterLibFunc(&libEvdiSetLogging, libPtr, "evdi_set_logging")
+
+	purego.RegisterLibFunc(&libEvdiConnect, libPtr, "evdi_connect")
+	purego.RegisterLibFunc(&libEvdiConnect2, libPtr, "evdi_connect2")
+	purego.RegisterLibFunc(&libEvdiDisconnect, libPtr, "evdi_disconnect")
 }
 
 var (
-	libEvdiGetLibVersion func(version unsafe.Pointer)
-	libEvdiCheckDevice   func(device int32) DeviceStatus
-	libEvdiAddDevice     func() int32
-	libEvdiOpen          func(device int32) handle
-	libEvdiClose         func(handle handle) handle
-	libXorgRunning       func() bool
+	libEvdiGetLibVersion       func(version unsafe.Pointer)
+	libEvdiCheckDevice         func(device int32) DeviceStatus
+	libEvdiAddDevice           func() int32
+	libEvdiOpen                func(device int32) evdiHandle
+	libEvdiOpenAttachedToFixed func(sysfsParentDevice unsafe.Pointer, length uint32) evdiHandle
+	libEvdiClose               func(handle evdiHandle)
+	libXorgRunning             func() bool
 	// libEvdiSetLogging       func(evdi) bool
+
+	libEvdiConnect    func(handle evdiHandle, edid *byte, edidLength uint32, skuAreaLimit uint32)
+	libEvdiConnect2   func(handle evdiHandle, edid *byte, edidLength uint32, pixelArealimit uint32, pixelPerSecondLimit uint32)
+	libEvdiDisconnect func(handle evdiHandle)
 )
