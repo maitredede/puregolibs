@@ -3,9 +3,11 @@ package evdi
 import (
 	"fmt"
 	"unsafe"
+
+	"github.com/maitredede/puregolibs/strings"
 )
 
-type handle unsafe.Pointer
+type evdiHandle unsafe.Pointer
 
 func AddDevice() int {
 	initLib()
@@ -13,8 +15,7 @@ func AddDevice() int {
 }
 
 type Device struct {
-	num int
-	h   handle
+	h evdiHandle
 }
 
 func OpenDevice(device int) (*Device, error) {
@@ -25,8 +26,21 @@ func OpenDevice(device int) (*Device, error) {
 		return nil, fmt.Errorf("failed to open device")
 	}
 	d := &Device{
-		num: device,
-		h:   h,
+		h: h,
+	}
+	return d, nil
+}
+
+func OpenAttachedTo(sysfsParent string) (*Device, error) {
+	initLib()
+
+	cParent, l := strings.CStringL(sysfsParent)
+	h := libEvdiOpenAttachedToFixed(unsafe.Pointer(cParent), uint32(l))
+	if h == nil {
+		return nil, fmt.Errorf("failed to open device")
+	}
+	d := &Device{
+		h: h,
 	}
 	return d, nil
 }
