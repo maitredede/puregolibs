@@ -18,7 +18,7 @@ var (
 //		void (*function)(void *user_data, const char *fmt, ...);
 //		void *user_data;
 //	};
-type nativeEvdiLogging struct {
+type evdiLogging struct {
 	function unsafe.Pointer
 	userData unsafe.Pointer
 }
@@ -71,7 +71,7 @@ func SetLogging(logger func(string)) {
 		panic(status)
 	}
 
-	log := nativeEvdiLogging{
+	log := evdiLogging{
 		function: logCallback,
 		userData: nil,
 	}
