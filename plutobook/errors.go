@@ -1,10 +1,5 @@
 package plutobook
 
-var (
-	libGetErrorMessage   func() string
-	libClearErrorMessage func() string
-)
-
 var ErrBookIsClosed *ErrorBookIsClosed = &ErrorBookIsClosed{m: "book is closed"}
 
 type ErrorBookIsClosed struct {

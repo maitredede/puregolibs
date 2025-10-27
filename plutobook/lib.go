@@ -167,6 +167,9 @@ var (
 	libResourceDataCreate            func(content binPtr, length uint32, mimeType stringPtr, textEncoding stringPtr) resourceDataPtr
 	libResourceDataDestroy           func(resource resourceDataPtr)
 	libResourceDataGetReferenceCount func(resource resourceDataPtr) uint32
+
+	libGetErrorMessage   func() string
+	libClearErrorMessage func() string
 )
 
 func registerFFIGetPageSize() {
