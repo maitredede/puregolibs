@@ -25,12 +25,12 @@ const (
 	POLLNVAL int16 = 0x020
 )
 
-func Poll(fds []Pollfd, timeout int) int {
+func Poll(fds []Pollfd, timeoutMs int) int {
 	initCLib()
 
 	fdsPtr := &fds[0]
 	nfds := len(fds)
 
-	ret := libcPoll(fdsPtr, uint32(nfds), int32(timeout))
+	ret := libcPoll(fdsPtr, uint32(nfds), int32(timeoutMs))
 	return int(ret)
 }

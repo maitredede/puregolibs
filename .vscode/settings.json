@@ -1,5 +1,11 @@
 {
   "go.testEnvVars": {
     // "FFI_NO_EMBED": "1"
+  },
+  "files.associations": {
+    "*.embeddedhtml": "html",
+    ".fantomasignore": "ignore",
+    "*.html": "html",
+    "cmath": "c"
   }
 }

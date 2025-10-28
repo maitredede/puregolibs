@@ -107,7 +107,7 @@ func TestDummy(t *testing.T) {
 		},
 	}
 
-	nativeEvts, dispose := buildNativeEvents(eventsHandler)
+	nativeEvts, dispose := buildNativeEvents(eventsHandler, nil)
 	t.Cleanup(dispose)
 
 	t.Log("evdi: connecting")

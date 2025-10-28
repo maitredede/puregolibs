@@ -165,7 +165,7 @@ func (d *Device) RunDummy(close context.Context) error {
 		},
 	}
 
-	nativeEvts, dispose := buildNativeEvents(eventsHandler)
+	nativeEvts, dispose := buildNativeEvents(eventsHandler, nil)
 	defer dispose()
 	slog.Debug("evdi: connecting")
 	maxUint32 := uint32(0xFFFFFFFF)
@@ -310,7 +310,7 @@ func (d *Device) RunDummy(close context.Context) error {
 // func (d *Device) RegisterBuffer(width, height, stride, rectCount int) (*Buffer, error) {
 // }
 
-func buildNativeEvents(e Events) (*evdiEventContext, func()) {
+func buildNativeEvents(e Events, userData unsafe.Pointer) (*evdiEventContext, func()) {
 	disposables := make([]func(), 0, 10)
 	dispose := func() {
 		for _, d := range disposables {
@@ -318,7 +318,9 @@ func buildNativeEvents(e Events) (*evdiEventContext, func()) {
 		}
 	}
 
-	ne := &evdiEventContext{}
+	ne := &evdiEventContext{
+		userData: userData,
+	}
 	//DPMS
 	{
 		var callback unsafe.Pointer
