@@ -6,6 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/maitredede/puregolibs/libc"
+	"golang.org/x/sys/unix"
 )
 
 type Card struct {
@@ -73,13 +74,16 @@ func (c *Card) HandleEvents(waitingTime int) {
 	fd := libEvdiGetEventReady(c.evdiHandle)
 	//TODO double check
 
-	fds := []libc.Pollfd{
-		libc.Pollfd{Fd: int32(fd), Events: libc.POLLIN},
+	fds := []unix.PollFd{
+		{Fd: int32(fd), Events: unix.POLLIN},
 	}
 
 	c.requestUpdate()
 
-	n := libc.Poll(fds, waitingTime)
+	n, err := unix.Poll(fds, waitingTime)
+	if err != nil {
+		panic(err)
+	}
 	if n > 0 {
 		libEvdiHandleEvents(c.evdiHandle, c.eventContext)
 	}

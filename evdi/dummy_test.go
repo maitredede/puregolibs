@@ -7,6 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/maitredede/puregolibs/libc"
+	"golang.org/x/sys/unix"
 )
 
 func TestDummy(t *testing.T) {
@@ -168,11 +169,14 @@ func TestDummy(t *testing.T) {
 		default:
 		}
 
-		fds := []libc.Pollfd{
-			libc.Pollfd{Fd: int32(newSelectable), Events: libc.POLLIN},
+		fds := []unix.PollFd{
+			{Fd: int32(newSelectable), Events: unix.POLLIN},
 		}
 
-		n := libc.Poll(fds, 100)
+		n, err := unix.Poll(fds, 100)
+		if err != nil {
+			panic(err)
+		}
 		// Attendre les événements (timeout de 100ms pour vérifier done)
 		// n, err := unix.EpollWait(epollFd, events, 100)
 		// if err != nil {
@@ -184,7 +188,7 @@ func TestDummy(t *testing.T) {
 		// }
 
 		// time.Sleep(1 * time.Millisecond)
-		isEPollIn := (fds[0].Revents & libc.POLLIN) == libc.POLLIN
+		isEPollIn := (fds[0].Revents & unix.POLLIN) == unix.POLLIN
 		t.Logf("f=%010d polled n=%v isEPollIn=%v", frameCount, n, isEPollIn)
 
 		if n > 0 {

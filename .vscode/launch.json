@@ -23,6 +23,15 @@
       "args": [""]
     },
     {
+      "name": "examples/evdi-dummy-go",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/examples/evdi-dummy-go",
+      "env": {},
+      "args": [""]
+    },
+    {
       "name": "examples/gousb-events",
       "type": "go",
       "request": "launch",
