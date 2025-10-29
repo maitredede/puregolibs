@@ -16,5 +16,6 @@ func main() {
 	dumpCec()
 	dumpUsb()
 	dumpPlutobook()
-	// dumpEvdi()
+	dumpEvdi()
+	dumpDrm()
 }

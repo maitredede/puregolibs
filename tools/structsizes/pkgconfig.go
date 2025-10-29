@@ -2,5 +2,6 @@
 
 package main
 
-// #cgo pkg-config: libnfc libfreefare sane-backends libcec libusb-1.0 fontconfig MagickWand MagickCore plutobook
+// #cgo pkg-config: libnfc libfreefare sane-backends libcec libusb-1.0 fontconfig MagickWand MagickCore plutobook libdrm
+// #cgo LDFLAGS: -levdi
 import "C"

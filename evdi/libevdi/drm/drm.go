@@ -72,8 +72,7 @@ func GetVersion(file *os.File) (Version, error) {
 	)
 
 	version := &drmVersion{}
-	err := ioctl.Do(uintptr(file.Fd()), uintptr(IOCTLVersion),
-		uintptr(unsafe.Pointer(version)))
+	err := ioctl.Do(uintptr(file.Fd()), uintptr(IOCTLVersion), uintptr(unsafe.Pointer(version)))
 	if err != nil {
 		return Version{}, err
 	}
@@ -92,8 +91,7 @@ func GetVersion(file *os.File) (Version, error) {
 		version.desc = uintptr(unsafe.Pointer(&desc[0]))
 	}
 
-	err = ioctl.Do(uintptr(file.Fd()), uintptr(IOCTLVersion),
-		uintptr(unsafe.Pointer(version)))
+	err = ioctl.Do(uintptr(file.Fd()), uintptr(IOCTLVersion), uintptr(unsafe.Pointer(version)))
 	if err != nil {
 		return Version{}, err
 	}

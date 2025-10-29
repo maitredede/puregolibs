@@ -90,13 +90,13 @@ func (h *Handle) Connect2(edid []byte, pixelAreaLimit uint32, pixelPerSecondLimi
 		pixelAreaLimit:      pixelAreaLimit,
 		pixelPerSecondLimit: pixelPerSecondLimit,
 	}
-	doIoctl(h.fd.Fd(), DRM_IOCTL_EVDI_CONNECT, uintptr(unsafe.Pointer(&cmd)), "connect")
+	doIoctl(h.fd, DRM_IOCTL_EVDI_CONNECT, uintptr(unsafe.Pointer(&cmd)), "connect")
 }
 
 func (h *Handle) Disconnect() {
 	cmd := drmEvdiConnect{}
 
-	doIoctl(h.fd.Fd(), DRM_IOCTL_EVDI_CONNECT, uintptr(unsafe.Pointer(&cmd)), "disconnect")
+	doIoctl(h.fd, DRM_IOCTL_EVDI_CONNECT, uintptr(unsafe.Pointer(&cmd)), "disconnect")
 }
 
 func (h *Handle) EnableCursorEvents(enabled bool) {
@@ -110,5 +110,5 @@ func (h *Handle) EnableCursorEvents(enabled bool) {
 	}
 
 	evdiLogInfo("%s events on /dev/dri/card%d", msg, h.deviceIndex)
-	doIoctl(h.fd.Fd(), DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS, uintptr(unsafe.Pointer(&cmd)), "enable cursor events")
+	doIoctl(h.fd, DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS, uintptr(unsafe.Pointer(&cmd)), "enable cursor events")
 }

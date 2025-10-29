@@ -1,10 +1,6 @@
-//go:build ignore
-
 package main
 
 // #include <evdi_lib.h>
-// // #cgo LDFLAGS: -llibevdi
-// // #cgo pkg-config: libevdi
 import "C"
 import "fmt"
 

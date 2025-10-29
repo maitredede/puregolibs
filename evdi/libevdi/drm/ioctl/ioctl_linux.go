@@ -30,18 +30,61 @@ import (
 // #define VFAT_IOCTL_READDIR_BOTH         _IOR('r', 1, struct dirent [2])
 // source: https://www.kernel.org/doc/Documentation/ioctl/ioctl-decoding.txt
 
-type Code struct {
-	typ  uint8  // type of ioctl call (read, write, both or none)
-	sz   uint16 // size of arguments (only 13bits usable)
-	uniq uint8  // unique ascii character for this device
-	fn   uint8  // function code
-}
+// type Code struct {
+// 	typ  uint8  // type of ioctl call (read, write, both or none)
+// 	sz   uint16 // size of arguments (only 13bits usable)
+// 	uniq uint8  // unique ascii character for this device
+// 	fn   uint8  // function code
+// }
 
 const (
 	None  = uint8(0x0)
 	Write = uint8(0x1)
 	Read  = uint8(0x2)
 )
+
+const (
+	n_IOC_NRBITS   = 8
+	n_IOC_TYPEBITS = 8
+	n_IOC_SIZEBITS = 14
+
+	n_IOC_NRSHIFT   = 0
+	n_IOC_TYPESHIFT = n_IOC_NRSHIFT + n_IOC_NRBITS
+	n_IOC_SIZESHIFT = n_IOC_TYPESHIFT + n_IOC_TYPEBITS
+	n_IOC_DIRSHIFT  = n_IOC_SIZESHIFT + n_IOC_SIZEBITS
+)
+
+func IOC(dir uint8, typ, nr, size uint16) uint32 {
+	if dir > Write|Read {
+		panic(fmt.Errorf("invalid ioctl code value: %d", typ))
+	}
+	if size > 2<<14 {
+		panic(fmt.Errorf("invalid ioctl size value: %d", size))
+	}
+
+	var code uint32
+	code |= (uint32(dir) << n_IOC_DIRSHIFT)
+	code |= (uint32(typ) << n_IOC_TYPESHIFT)
+	code |= (uint32(nr) << n_IOC_NRSHIFT)
+	code |= (uint32(size) << n_IOC_SIZESHIFT)
+	return code
+}
+
+func IOW(typ, nr, size uint16) uint32 {
+	return IOC(Write, typ, nr, size)
+}
+
+func IOR(typ, nr, size uint16) uint32 {
+	return IOC(Read, typ, nr, size)
+}
+
+func IORW(typ, nr, size uint16) uint32 {
+	return IOC(Read|Write, typ, nr, size)
+}
+
+func IO(typ, nr uint16) uint32 {
+	return IOC(None, typ, nr, 0)
+}
 
 func NewCode(typ uint8, sz uint16, uniq, fn uint8) uint32 {
 	var code uint32

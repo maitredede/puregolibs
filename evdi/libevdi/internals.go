@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unsafe"
 
 	"github.com/maitredede/puregolibs/evdi/libevdi/drm"
 	"github.com/prometheus/procfs"
@@ -147,7 +146,8 @@ func openDevice(device int) (*os.File, error) {
 		return nil, err
 	}
 
-	if err := drmIoctl(fd.Fd(), DRM_IOCTL_DROP_MASTER, 0); err == 0 {
+	// if err := drmIoctl(fd.Fd(), DRM_IOCTL_DROP_MASTER, 0); err == 0 {
+	if err := drm.DropMaster(fd); err == nil {
 		evdiLogInfo("dropped master on %s", dev)
 	}
 	return fd, nil
@@ -163,19 +163,19 @@ func isEvdi(fd *os.File) bool {
 }
 
 func isEvdiCompatible(fd *os.File) bool {
-	ver := drmVersion{}
 
 	evdiLogInfo("LibEvdi Version (%d.%d.%d) (go %s)", libEvdiVersionMajor, libEvdiVersionMinor, libEvdiVersionPatch, runtime.Version())
 
-	ret := doIoctl(fd.Fd(), DRM_IOCTL_VERSION, uintptr(unsafe.Pointer(&ver)), "version")
-	if ret != 0 {
+	ver, err := drm.GetVersion(fd)
+	if err != nil {
+		evdiLogInfo("can't get evdi version: %v", err)
 		return false
 	}
 
-	evdiLogInfo("Evdi Version (%d.%d.%d)", ver.versionMajor, ver.versionMinor, ver.versionPatchLevel)
+	evdiLogInfo("Evdi Version (%d.%d.%d)", ver.Major, ver.Minor, ver.Patch)
 
-	if ver.versionMajor == evdiModuleCompatibilityVersionMajor &&
-		ver.versionMinor >= evdiModuleCompatibilityVersionMinor {
+	if ver.Major == evdiModuleCompatibilityVersionMajor &&
+		ver.Minor >= evdiModuleCompatibilityVersionMinor {
 		return true
 	}
 
@@ -283,16 +283,17 @@ func openAsSlave(devicePath string) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	if drmIsMaster(f.Fd()) {
+	if drm.IsMaster(f) {
 		evdiLogInfo("process has master on %s, err: %s", devicePath, "TODO")
-		err = drmIoctl(f.Fd(), DRM_IOCTL_DROP_MASTER, 0)
+		// err = drmIoctl(f.Fd(), DRM_IOCTL_DROP_MASTER, 0)
+		err = drm.DropMaster(f)
 	}
 	if err != nil {
 		evdiLogInfo("drop master on %s failed, err: %v", devicePath, err)
 		f.Close()
 		return nil, err
 	}
-	if drmIsMaster(f.Fd()) {
+	if drm.IsMaster(f) {
 		evdiLogInfo("drop master on %s failed, err: %v", devicePath, err)
 		f.Close()
 		return nil, err

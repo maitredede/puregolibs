@@ -1,40 +1,44 @@
 package libevdi
 
 import (
+	"os"
 	"syscall"
 	"unsafe"
 
+	"github.com/maitredede/puregolibs/evdi/libevdi/drm"
+	ioc "github.com/maitredede/puregolibs/evdi/libevdi/drm/ioctl"
 	"golang.org/x/sys/unix"
 )
 
 const (
-	DRM_IOCTL_BASE   uintptr = 'd'
-	DRM_COMMAND_BASE uintptr = 0x40
+	DRM_COMMAND_BASE = 0x40
 )
 
-func DRM_IO(nr uintptr) uintptr {
-	return IO(DRM_IOCTL_BASE, nr)
-}
+// func DRM_IO(nr uintptr) uintptr {
+// 	return IO(drm.IOCTLBase, nr)
+// }
 
-func DRM_IOW(nr, size uintptr) uintptr {
-	return IOW(DRM_IOCTL_BASE, nr, size)
-}
+// func DRM_IOW(nr, size uintptr) uintptr {
+// 	return IOW(drm.IOCTLBase, nr, size)
+// }
 
-func DRM_IOWR(nr, size uintptr) uintptr {
-	return IOWR(DRM_IOCTL_BASE, nr, size)
-}
+// func DRM_IOWR(nr, size uintptr) uintptr {
+// 	return IOWR(drm.IOCTLBase, nr, size)
+// }
 
 var (
-	DRM_IOCTL_VERSION = DRM_IOWR(0x00, unsafe.Sizeof(drmVersion{}))
+	// DRM_IOCTL_VERSION = DRM_IOWR(0x00, unsafe.Sizeof(drmVersion{}))
 
-	DRM_IOCTL_AUTH_MAGIC  = DRM_IOW(0x11, unsafe.Sizeof(drmAuth{}))
-	DRM_IOCTL_DROP_MASTER = DRM_IO(0x1f)
+	// DRM_IOCTL_AUTH_MAGIC  = DRM_IOW(0x11, unsafe.Sizeof(drmAuth{}))
+	// DRM_IOCTL_DROP_MASTER = DRM_IO(0x1f)
 
-	DRM_IOCTL_EVDI_CONNECT = DRM_IOWR(DRM_COMMAND_BASE+DRM_EVDI_CONNECT, unsafe.Sizeof(drmEvdiConnect{}))
+	// DRM_IOCTL_EVDI_CONNECT = DRM_IOWR(DRM_COMMAND_BASE+DRM_EVDI_CONNECT, unsafe.Sizeof(drmEvdiConnect{}))
+	DRM_IOCTL_EVDI_CONNECT = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiConnect{})), drm.IOCTLBase+DRM_COMMAND_BASE, DRM_EVDI_CONNECT)
 	// DRM_IOCTL_EVDI_REQUEST_UPDATE
 	// DRM_IOCTL_EVDI_GRABPIX
 	// DRM_IOCTL_EVDI_DDCCI_RESPONSE
-	DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS = DRM_IOWR(DRM_COMMAND_BASE+DRM_EVDI_ENABLE_CURSOR_EVENTS, unsafe.Sizeof(drmEvdiEnableCursorEvents{}))
+	// DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS = DRM_IOWR(DRM_COMMAND_BASE+DRM_EVDI_ENABLE_CURSOR_EVENTS, unsafe.Sizeof(drmEvdiEnableCursorEvents{}))
+	DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiEnableCursorEvents{})), drm.IOCTLBase+DRM_COMMAND_BASE, DRM_EVDI_ENABLE_CURSOR_EVENTS)
 )
 
 const (
@@ -78,26 +82,8 @@ func drmIoctl(fd uintptr, req uintptr, arg uintptr) syscall.Errno {
 	return errno
 }
 
-func drmAuthMagic(fd uintptr, magic drmMagic) syscall.Errno {
-	var auth drmAuth
-
-	auth.magic = magic
-
-	if ret := drmIoctl(fd, DRM_IOCTL_AUTH_MAGIC, uintptr(unsafe.Pointer(&auth))); ret != 0 {
-		return ret
-	}
-	return 0
-}
-
-func drmIsMaster(fd uintptr) bool {
-	res := drmAuthMagic(fd, 0)
-	// e := ^(uintptr(syscall.EACCES))
-	// return res != e
-	return res != syscall.EACCES
-}
-
-func doIoctl(fd uintptr, request uintptr, data uintptr, msg string) syscall.Errno {
-	err := drmIoctl(fd, request, data)
+func doIoctl(f *os.File, request uint32, data uintptr, msg string) syscall.Errno {
+	err := drmIoctl(f.Fd(), uintptr(request), data)
 	if err != 0 {
 		evdiLogDebug("ioctl %s error: %s", msg, unix.ErrnoName(err))
 	}
