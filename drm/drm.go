@@ -1,3 +1,5 @@
+//go:build linux
+
 package drm
 
 import (
@@ -8,7 +10,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm/ioctl"
+	"github.com/maitredede/puregolibs/drm/ioctl"
 )
 
 type (

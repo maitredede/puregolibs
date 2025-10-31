@@ -1,6 +1,8 @@
+//go:build linux
+
 package drm_test
 
-import "github.com/maitredede/puregolibs/evdi/libevdi/drm"
+import "github.com/maitredede/puregolibs/drm"
 
 // import (
 // 	"fmt"

@@ -7,7 +7,7 @@ import (
 	"slices"
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 type nfcContextPtr unsafe.Pointer

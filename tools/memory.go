@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 func DumpMemory(ptr unsafe.Pointer, size uintptr) {

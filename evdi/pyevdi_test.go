@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/maitredede/puregolibs/resources"
 	"github.com/neilotoole/slogt"
 )
 
@@ -26,7 +27,7 @@ func TestPyEvdiDummyMonitor(t *testing.T) {
 		ResolutionHeight: 800,
 		RefreshRate:      60,
 		// EDID:             EDIDv2_1920x1080,
-		EDID: EDIDv1_1280x800,
+		EDID: resources.EDIDv1_1280x800,
 		// EDID:     nil,
 		FPSLimit: 60,
 	}

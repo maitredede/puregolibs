@@ -1,10 +1,12 @@
+//go:build linux
+
 package drm
 
 import (
 	"os"
 	"syscall"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm/ioctl"
+	"github.com/maitredede/puregolibs/drm/ioctl"
 )
 
 func IsMaster(f *os.File) bool {

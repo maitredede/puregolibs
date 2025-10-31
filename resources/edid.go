@@ -1,4 +1,4 @@
-package evdi
+package resources
 
 import _ "embed"
 

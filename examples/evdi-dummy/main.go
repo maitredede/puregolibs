@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/maitredede/puregolibs/evdi"
+	"github.com/maitredede/puregolibs/resources"
 	edid2 "github.com/srlehn/edid"
 )
 
@@ -18,7 +19,7 @@ func main() {
 
 	edidList := [][]byte{
 		// evdi.DummyEdid[:],
-		evdi.EDIDv1_1280x800,
+		resources.EDIDv1_1280x800,
 		// evdi.EDIDv1_1440x900,
 		// evdi.EDIDv1_1600x900,
 		// evdi.EDIDv1_1680x1050,

@@ -5,7 +5,10 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"os/signal"
+	"time"
 
+	"github.com/maitredede/puregolibs/evdi/libevdi"
 	evdi "github.com/maitredede/puregolibs/evdi/libevdi"
 )
 
@@ -13,6 +16,7 @@ func main() {
 	flag.Parse()
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)
+	libevdi.SetLogging(slog.Default())
 
 	slog.Info("main: opening evdi device")
 	device, err := evdi.OpenAttachedToNone()
@@ -22,15 +26,13 @@ func main() {
 	}
 	defer device.Close()
 
-	slog.Info("main: enabling cursor events")
-	device.EnableCursorEvents(true)
-
-	// ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
-	// defer stop()
-	ctx := context.TODO()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer stop()
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	slog.Info("main: starting dummy")
-	if err := device.RunDummy(ctx); err != nil {
+	if err := device.RunDummy(ctx2); err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}

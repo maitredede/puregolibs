@@ -8,7 +8,8 @@ import (
 	"unsafe"
 
 	"github.com/jupiterrider/ffi"
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/resources"
+	"github.com/maitredede/puregolibs/tools/strings"
 	"golang.org/x/sys/unix"
 )
 
@@ -104,7 +105,7 @@ func (d *Device) EnableCursorEvents(enabled bool) error {
 }
 
 func (d *Device) DummyEDID() []byte {
-	return EDIDv1_1280x800[:]
+	return resources.EDIDv1_1280x800
 }
 
 func (d *Device) RunDummy(close context.Context) error {

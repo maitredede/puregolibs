@@ -1,3 +1,5 @@
+//go:build linux
+
 package libevdi
 
 import (
@@ -6,16 +8,30 @@ import (
 	"os"
 	"strings"
 	"unsafe"
+
+	drmmode "github.com/maitredede/puregolibs/drm/mode"
+	"github.com/maitredede/puregolibs/tools/linkedlist"
+	"golang.org/x/sys/unix"
 )
 
 type Handle struct {
 	fd          *os.File
 	deviceIndex int
+
+	bufferToUpdate int32
+
+	buffersMap map[int32]bufferData
+
+	frameBuffersListHead linkedlist.LinkedList[*evdiBuffer]
+
+	currentBufferIndex int32
 }
 
 const (
 	EvdiInvalidDeviceIndex = -1
 	EvdiUsageLength        = 64
+
+	bufferCount = 2
 )
 
 func OpenAttachedTo(sysfsParentDevice string) (*Handle, error) {
@@ -54,6 +70,8 @@ func Open(device int) (*Handle, error) {
 	h := &Handle{
 		fd:          fd,
 		deviceIndex: device,
+
+		buffersMap: make(map[int32]bufferData),
 	}
 	cardUsage[device] = h
 	evdiLogInfo("using /dev/dri/card%d", device)
@@ -110,5 +128,164 @@ func (h *Handle) EnableCursorEvents(enabled bool) {
 	}
 
 	evdiLogInfo("%s events on /dev/dri/card%d", msg, h.deviceIndex)
-	doIoctl(h.fd, DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS, uintptr(unsafe.Pointer(&cmd)), "enable cursor events")
+	err := doIoctl(h.fd, DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS, uintptr(unsafe.Pointer(&cmd)), "enable cursor events")
+	if err != 0 {
+		evdiLogDebug("cursor events ret: %v", err)
+	}
+}
+
+func (h *Handle) PollEvents(timeoutMS int, handlers EventHandlers) {
+	fd := h.fd.Fd()
+	events := []unix.PollFd{
+		{Fd: int32(fd), Events: unix.POLLIN},
+	}
+	for {
+		n, err := unix.Poll(events, timeoutMS)
+		if err != nil {
+			if err == unix.EINTR {
+				continue
+			}
+			evdiLogDebug("epoll wait error: %v\n", err)
+			continue
+		}
+		if n != 0 {
+			h.HandleEvents(handlers)
+		}
+		break
+	}
+}
+
+func (h *Handle) HandleEvents(handlers EventHandlers) {
+
+	buffer := make([]byte, 1024)
+	bytesRead, err := h.fd.Read(buffer)
+	if err != nil {
+		evdiLogDebug("TODO handleEvents read error: %v", err)
+	}
+	evdiLogDebug("events: bytesRead=%d", bytesRead)
+	var i int
+	for {
+		if i >= bytesRead {
+			break
+		}
+
+		e := (*drmEvent)(unsafe.Pointer(&buffer[i]))
+		h.handleEvent(handlers, e)
+
+		i += int(e.length)
+	}
+}
+
+func (h *Handle) handleEvent(evtctx EventHandlers, e *drmEvent) {
+	switch e.typ {
+	case DRM_EVDI_EVENT_UPDATE_READY:
+		if evtctx.UpdateReady != nil {
+			evtctx.UpdateReady(h.bufferToUpdate, evtctx.UserData)
+		}
+	case DRM_EVDI_EVENT_DPMS:
+		if evtctx.Dpms != nil {
+			event := *(*drmEvdiEventDpms)(unsafe.Pointer(e))
+			evtctx.Dpms(event.mode, evtctx.UserData)
+		}
+	case DRM_EVDI_EVENT_MODE_CHANGED:
+		if evtctx.ModeChanged != nil {
+			event := *(*drmEvdiModeChanged)(unsafe.Pointer(e))
+			evtctx.ModeChanged(toEvdiMode(event), evtctx.UserData)
+		}
+	case DRM_EVDI_EVENT_CRTC_STATE:
+		if evtctx.CrtcState != nil {
+			event := *(*drmEvdiEventCrtcState)(unsafe.Pointer(e))
+			evtctx.CrtcState(event.state, evtctx.UserData)
+		}
+	case DRM_EVDI_EVENT_CURSOR_SET:
+		if evtctx.CursorSet != nil {
+			event := *(*drmEvdiEventCursorSet)(unsafe.Pointer(e))
+			cursorSet := h.toEvdiCursorSet(event)
+			if cursorSet.Enabled && len(cursorSet.BufferData) == 0 {
+				evdiLogInfo("Error: Cursor buffer is null!")
+				evdiLogInfo("Disabling cursor events")
+				h.EnableCursorEvents(false)
+				cursorSet.Enabled = false
+				cursorSet.BufferData = nil
+			}
+			evtctx.CursorSet(cursorSet, evtctx.UserData)
+		}
+	case DRM_EVDI_EVENT_CURSOR_MOVE:
+		if evtctx.CursorMove != nil {
+			event := *(*drmEvdiEventCursorMove)(unsafe.Pointer(e))
+			evtctx.CursorMove(toEvdiCursorMove(event), evtctx.UserData)
+		}
+	case DRM_EVDI_EVENT_DDCCI_DATA:
+		if evtctx.DdcciData != nil {
+			event := *(*drmEvdiEventDdcciData)(unsafe.Pointer(e))
+			evtctx.DdcciData(toEvdiDdcciData(event), evtctx.UserData)
+		}
+	default:
+		evdiLogInfo("warning: unhandled event 0x%08x", e.typ)
+	}
+}
+
+func (h *Handle) UnregisterBuffer(bufferID int32) {
+	// entry := h.findBuffer(bufferID)
+	// if entry == nil {
+	// 	return
+	// }
+	h.removeFrameBuffer(bufferID)
+}
+
+// func (h *Handle) findBuffer(id int32) *evdiBuffer {
+// 	node := h.frameBuffersListHead.FindItem(func(a *evdiBuffer) bool {
+// 		return a.id == id
+// 	})
+// 	if node != nil {
+// 		return node.Item
+// 	}
+// 	return nil
+// }
+
+func (h *Handle) removeFrameBuffer(bufferID int32) {
+	entry := h.frameBuffersListHead.FindItem(func(a *evdiBuffer) bool {
+		return a.id == bufferID
+	})
+	if entry == nil {
+		return
+	}
+	// TODO check buffer alloc/free
+	// libc.Free(unsafe.Pointer(entry.Item.buffer))
+}
+
+func (h *Handle) RegisterBuffer(buffer *evdiBuffer) {
+	entry := h.frameBuffersListHead.FindItem(func(a *evdiBuffer) bool { return a.id == buffer.id })
+	if entry != nil {
+		panic("buffer already exists")
+	}
+	h.addFrameBuffer(buffer)
+}
+
+func (h *Handle) addFrameBuffer(buffer *evdiBuffer) {
+	h.frameBuffersListHead.Append(buffer)
+}
+
+func (h *Handle) RequestUpdate(bufferID int32) bool {
+	h.bufferToUpdate = bufferID
+
+	cmd := drmEvdiRequestUpdate{}
+	requestResult := doIoctl(h.fd, DRM_IOCTL_EVDI_REQUEST_UPDATE, uintptr(unsafe.Pointer(&cmd)), "request_update")
+	grabImmediately := requestResult == 1
+	return grabImmediately
+}
+
+func (h *Handle) getDumbOffset(handle uint32, offset *uint64) error {
+	// mapDumb := drmModeMapDumb{}
+	// mapDumb.handle = handle
+	// ret := doIoctl(h.fd, DRM_IOCTL_MODE_MAP_DUMB, uintptr(unsafe.Pointer(&mapDumb)), "DRM_MODE_MAP_DUMB")
+	// *offset = mapDumb.offset
+	// return ret
+
+	res, err := drmmode.MapDumb(h.fd, handle)
+	if err != nil {
+		evdiLogDebug("handle: getDumbOffset err=%v", err)
+	}
+	*offset = res
+	return err
 }

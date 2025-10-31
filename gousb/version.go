@@ -3,7 +3,7 @@ package gousb
 import (
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 type libusbVersion struct {

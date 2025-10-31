@@ -4,7 +4,7 @@ import (
 	"errors"
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 type nfcDevicePtr unsafe.Pointer

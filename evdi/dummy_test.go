@@ -7,6 +7,7 @@ import (
 	"unsafe"
 
 	"github.com/maitredede/puregolibs/libc"
+	"github.com/maitredede/puregolibs/resources"
 	"golang.org/x/sys/unix"
 )
 
@@ -29,7 +30,7 @@ func TestDummy(t *testing.T) {
 		t.Fatal("memory allocation failed")
 	}
 
-	edid := EDIDv1_1280x800
+	edid := resources.EDIDv1_1280x800
 	eventsHandler := Events{
 		ModeChanged: func(mode EvdiMode, userdata unsafe.Pointer) {
 			t.Logf("Mode changed: %dx%d @%dHz (bpp: %d, format: 0x%x)\n",

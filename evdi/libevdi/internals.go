@@ -1,3 +1,5 @@
+//go:build linux
+
 package libevdi
 
 import (
@@ -7,9 +9,10 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm"
+	"github.com/maitredede/puregolibs/drm"
 	"github.com/prometheus/procfs"
 	"golang.org/x/sys/unix"
 )
@@ -125,12 +128,14 @@ func getDrmDeviceIndex(evdiSysfsDrmDir string) int {
 func writeAddDevice(buffer string) (int, error) {
 	addDevices, err := os.OpenFile("/sys/devices/evdi/add", os.O_WRONLY, 0)
 	if err != nil {
+		evdiLogDebug("writeAddDevice open failed: %v", err)
 		return 0, err
 	}
 	defer addDevices.Close()
 
 	n, err := addDevices.WriteString(buffer)
 	if err != nil {
+		evdiLogDebug("writeAddDevice write failed: %v", err)
 		return 0, err
 	}
 	return n, nil
@@ -279,7 +284,7 @@ func waitForDevice(devicePath string) (*os.File, error) {
 }
 
 func openAsSlave(devicePath string) (*os.File, error) {
-	f, err := os.OpenFile(devicePath, os.O_RDWR, 0)
+	f, err := os.OpenFile(devicePath, os.O_RDWR|syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return nil, err
 	}

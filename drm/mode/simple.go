@@ -1,3 +1,5 @@
+//go:build linux
+
 // Port of modeset.c example to Go
 // Source: https://github.com/dvdhrm/docs/blob/master/drm-howto/modeset.c
 package mode

@@ -1,10 +1,12 @@
+//go:build linux
+
 package drm_test
 
 import (
 	"testing"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm"
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm/mode"
+	"github.com/maitredede/puregolibs/drm"
+	"github.com/maitredede/puregolibs/drm/mode"
 )
 
 func TestDRIOpen(t *testing.T) {

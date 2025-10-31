@@ -1,3 +1,5 @@
+//go:build linux
+
 package libevdi
 
 import (
@@ -5,40 +7,9 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm"
-	ioc "github.com/maitredede/puregolibs/evdi/libevdi/drm/ioctl"
+	"github.com/maitredede/puregolibs/drm"
+	ioc "github.com/maitredede/puregolibs/drm/ioctl"
 	"golang.org/x/sys/unix"
-)
-
-const (
-	DRM_COMMAND_BASE = 0x40
-)
-
-// func DRM_IO(nr uintptr) uintptr {
-// 	return IO(drm.IOCTLBase, nr)
-// }
-
-// func DRM_IOW(nr, size uintptr) uintptr {
-// 	return IOW(drm.IOCTLBase, nr, size)
-// }
-
-// func DRM_IOWR(nr, size uintptr) uintptr {
-// 	return IOWR(drm.IOCTLBase, nr, size)
-// }
-
-var (
-	// DRM_IOCTL_VERSION = DRM_IOWR(0x00, unsafe.Sizeof(drmVersion{}))
-
-	// DRM_IOCTL_AUTH_MAGIC  = DRM_IOW(0x11, unsafe.Sizeof(drmAuth{}))
-	// DRM_IOCTL_DROP_MASTER = DRM_IO(0x1f)
-
-	// DRM_IOCTL_EVDI_CONNECT = DRM_IOWR(DRM_COMMAND_BASE+DRM_EVDI_CONNECT, unsafe.Sizeof(drmEvdiConnect{}))
-	DRM_IOCTL_EVDI_CONNECT = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiConnect{})), drm.IOCTLBase+DRM_COMMAND_BASE, DRM_EVDI_CONNECT)
-	// DRM_IOCTL_EVDI_REQUEST_UPDATE
-	// DRM_IOCTL_EVDI_GRABPIX
-	// DRM_IOCTL_EVDI_DDCCI_RESPONSE
-	// DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS = DRM_IOWR(DRM_COMMAND_BASE+DRM_EVDI_ENABLE_CURSOR_EVENTS, unsafe.Sizeof(drmEvdiEnableCursorEvents{}))
-	DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiEnableCursorEvents{})), drm.IOCTLBase+DRM_COMMAND_BASE, DRM_EVDI_ENABLE_CURSOR_EVENTS)
 )
 
 const (
@@ -48,22 +19,17 @@ const (
 	DRM_EVDI_GRABPIX              = 0x02
 	DRM_EVDI_DDCCI_RESPONSE       = 0x03
 	DRM_EVDI_ENABLE_CURSOR_EVENTS = 0x04
+
+	DDCCI_BUFFER_SIZE = 64
 )
 
-type drmMagic uint32
-
-type drmAuth struct {
-	magic drmMagic
-}
-
-func ioctl(fd int, req uint, arg uintptr) (n int, err error) {
-	r1, _, e1 := unix.Syscall(unix.SYS_IOCTL, uintptr(fd), uintptr(req), uintptr(arg))
-	n = int(r1)
-	if e1 != 0 {
-		err = errnoErr(e1)
-	}
-	return
-}
+var (
+	DRM_IOCTL_EVDI_CONNECT              = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiConnect{})), drm.IOCTLBase, drm.CommandBase+DRM_EVDI_CONNECT)
+	DRM_IOCTL_EVDI_REQUEST_UPDATE       = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiRequestUpdate{})), drm.IOCTLBase, drm.CommandBase+DRM_EVDI_REQUEST_UPDATE)
+	DRM_IOCTL_EVDI_GRABPIX              = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiGrabPix{})), drm.IOCTLBase, drm.CommandBase+DRM_EVDI_GRABPIX)
+	DRM_IOCTL_EVDI_DDCCI_RESPONSE       = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiDdcciResponse{})), drm.IOCTLBase, drm.CommandBase+DRM_EVDI_DDCCI_RESPONSE)
+	DRM_IOCTL_EVDI_ENABLE_CURSOR_EVENTS = ioc.NewCode(ioc.Read|ioc.Write, uint16(unsafe.Sizeof(drmEvdiEnableCursorEvents{})), drm.IOCTLBase, drm.CommandBase+DRM_EVDI_ENABLE_CURSOR_EVENTS)
+)
 
 func drmIoctl(fd uintptr, req uintptr, arg uintptr) syscall.Errno {
 	var ret uintptr
@@ -90,18 +56,6 @@ func doIoctl(f *os.File, request uint32, data uintptr, msg string) syscall.Errno
 	return err
 }
 
-type drmVersion struct {
-	versionMajor      int32
-	versionMinor      int32
-	versionPatchLevel int32
-	nameLen           uint32
-	name              unsafe.Pointer
-	dateLen           uint32
-	date              unsafe.Pointer
-	descLen           uint32
-	desc              unsafe.Pointer
-}
-
 type drmEvdiConnect struct {
 	connected           int32
 	devIndex            int32
@@ -117,6 +71,83 @@ type drmEvdiEnableCursorEvents struct {
 }
 
 type drmEvent struct {
-	typ    uint32
+	typ    DrmEvdiEventType
 	length uint32
+}
+
+type drmEvdiRequestUpdate struct {
+	reserved int32
+}
+
+type grabPixMode int32
+
+const (
+	EVDI_GRABPIX_MODE_RECTS grabPixMode = 0
+	EVDI_GRABPIX_MODE_DIRTY grabPixMode = 1
+)
+
+type drmEvdiGrabPix struct {
+	mode          grabPixMode
+	bufWidth      int32
+	bufHeight     int32
+	bufByteStride int32
+	buffer        *byte
+	numRects      int32
+	rects         *drmClipRect
+}
+
+type drmClipRect struct {
+	x1, y1, x2, y2 uint16
+}
+
+type drmEvdiDdcciResponse struct {
+	buffer       *byte
+	bufferLength uint32
+	result       uint8
+}
+
+type drmEvdiEventDdcciData struct {
+	base         drmEvent
+	buffer       [DDCCI_BUFFER_SIZE]byte
+	bufferLength uint32
+	flags        uint16
+	address      uint16
+}
+
+type drmEvdiEventDpms struct {
+	base drmEvent
+	mode int32
+}
+
+type drmEvdiModeChanged struct {
+	base         drmEvent
+	hdisplay     int32
+	vdisplay     int32
+	vrefresh     int32
+	bitsPerPixel int32
+	pixelFormat  int32
+}
+
+type drmEvdiEventCrtcState struct {
+	base  drmEvent
+	state int32
+}
+
+type drmEvdiEventCursorSet struct {
+	base         drmEvent
+	hotX         int32
+	hotY         int32
+	width        uint32
+	height       uint32
+	enabled      uint8
+	bufferHandle uint32
+	bufferLength uint32
+	pixelFormat  uint32
+	stride       uint32
+}
+
+type drmEvdiEventCursorMove struct {
+	base drmEvent
+	x    int32
+	y    int32
 }

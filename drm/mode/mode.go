@@ -1,11 +1,13 @@
+//go:build linux
+
 package mode
 
 import (
 	"os"
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm"
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm/ioctl"
+	"github.com/maitredede/puregolibs/drm"
+	"github.com/maitredede/puregolibs/drm/ioctl"
 )
 
 const (

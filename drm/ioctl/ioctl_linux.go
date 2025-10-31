@@ -1,3 +1,5 @@
+//go:build linux
+
 package ioctl
 
 import (
@@ -78,8 +80,8 @@ func IOR(typ, nr, size uint16) uint32 {
 	return IOC(Read, typ, nr, size)
 }
 
-func IORW(typ, nr, size uint16) uint32 {
-	return IOC(Read|Write, typ, nr, size)
+func IOWR(typ, nr, size uint16) uint32 {
+	return IOC(Write|Read, typ, nr, size)
 }
 
 func IO(typ, nr uint16) uint32 {

@@ -3,7 +3,7 @@ package cec
 import (
 	"time"
 
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 type LogMessage struct {

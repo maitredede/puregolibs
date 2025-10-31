@@ -1,10 +1,12 @@
+//go:build linux
+
 package drm
 
 import (
 	"os"
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm/ioctl"
+	"github.com/maitredede/puregolibs/drm/ioctl"
 )
 
 type DrmMagic uint32

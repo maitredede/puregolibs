@@ -5,7 +5,7 @@ import (
 	"unsafe"
 
 	"github.com/maitredede/puregolibs/libnfc"
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 type TagInfo struct {

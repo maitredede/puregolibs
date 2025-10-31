@@ -8,7 +8,7 @@ import (
 
 	gostrings "strings"
 
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 type connectionPtr unsafe.Pointer

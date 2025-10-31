@@ -6,7 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/jupiterrider/ffi"
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 // Device represents a scanning device.

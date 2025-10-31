@@ -1,9 +1,11 @@
+//go:build linux
+
 package drm_test
 
 import (
 	"testing"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm"
+	"github.com/maitredede/puregolibs/drm"
 )
 
 func TestHasDumbBuffer(t *testing.T) {

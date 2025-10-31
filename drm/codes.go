@@ -1,12 +1,18 @@
+//go:build linux
+
 package drm
 
 import (
 	"unsafe"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi/drm/ioctl"
+	"github.com/maitredede/puregolibs/drm/ioctl"
 )
 
-const IOCTLBase = 'd'
+const (
+	IOCTLBase   = 'd'
+	CommandBase = 0x40
+	CommandEnd  = 0xA0
+)
 
 var (
 	// DRM_IOWR(0x00, struct drm_version)
@@ -29,6 +35,9 @@ var (
 	IOCTLSetMaster = ioctl.NewCode(ioctl.None, 0, IOCTLBase, 0x1e)
 	// DRM_IO(0x1f)
 	IOCTLDropMaster = ioctl.NewCode(ioctl.None, 0, IOCTLBase, 0x1f)
+
+	// DRM_IOCTL_MODE_MAP_DUMB    DRM_IOWR(0xB3, struct drm_mode_map_dumb)
+	IOCTLModeMapDumb = ioctl.NewCode(ioctl.Read|ioctl.Write, uint16(unsafe.Sizeof(ModeMapDumb{})), IOCTLBase, 0xb3)
 )
 
 func drmIOW(nr, typ uint16) uint32 {
@@ -39,8 +48,8 @@ func drmIOR(nr, typ uint16) uint32 {
 	return ioctl.IOR(IOCTLBase, nr, typ)
 }
 
-func drmIORW(nr, typ uint16) uint32 {
-	return ioctl.IORW(IOCTLBase, nr, typ)
+func drmIOWR(nr, typ uint16) uint32 {
+	return ioctl.IOWR(IOCTLBase, nr, typ)
 }
 
 func drmIO(nr uint16) uint32 {

@@ -3,7 +3,7 @@ package libnfc
 import (
 	"testing"
 
-	"github.com/maitredede/puregolibs/strings"
+	"github.com/maitredede/puregolibs/tools/strings"
 )
 
 func TestCustomDriver(t *testing.T) {

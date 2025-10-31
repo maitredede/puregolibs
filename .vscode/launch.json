@@ -28,8 +28,13 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/examples/evdi-dummy-go",
-      "env": {},
-      "args": [""]
+      "env": {
+        "PATH": "${env:PATH}:/usr/local/go/bin/"
+      },
+      "args": [""],
+      "asRoot": true,
+      "console": "integratedTerminal",
+      "hideSystemGoroutines": true
     },
     {
       "name": "examples/gousb-events",
