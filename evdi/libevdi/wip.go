@@ -5,7 +5,6 @@ package libevdi
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"unsafe"
 
 	"github.com/maitredede/puregolibs/resources"
@@ -46,14 +45,14 @@ func (h *Handle) DummyEDID() []byte {
 }
 
 func (h *Handle) RunDummy(ctx context.Context) error {
-	slog.Info("dummy: enabling cursor events")
+	evdiLogDebug("dummy: enabling cursor events")
 	h.EnableCursorEvents(true)
 
 	var currentBuffer int32
 
 	eventsHandler := EventHandlers{
 		ModeChanged: func(mode Mode, userdata any) {
-			slog.Info(fmt.Sprintf("mode: %+v", mode))
+			evdiLogInfo("event: mode: %+v", mode)
 			for bid, _ /* buff */ := range h.buffersMap {
 				h.UnregisterBuffer(bid)
 				delete(h.buffersMap, bid)
@@ -83,42 +82,44 @@ func (h *Handle) RunDummy(ctx context.Context) error {
 				h.buffersMap[buffer.id] = b
 			}
 			h.bufferToUpdate = 0
+			if h.RequestUpdate(h.bufferToUpdate) {
+				b := h.buffersMap[h.bufferToUpdate]
+				h.GrabPixels(b.buffer.rects, &b.buffer.rectCount)
+			}
 		},
 
 		Dpms: func(dpmsMode DpmsMode, userData any) {
-			slog.Info(fmt.Sprintf("dpms: %v", dpmsMode))
+			evdiLogInfo("event: dpms: %v", dpmsMode)
 		},
 		UpdateReady: func(bufferToUpdate int32, userData any) {
-			evdiLogDebug("updateReady: %d", bufferToUpdate)
+			evdiLogInfo("event: updateReady: %d", bufferToUpdate)
 			buff := h.buffersMap[h.bufferToUpdate]
 			h.GrabPixels(buff.buffer.rects, &buff.buffer.rectCount)
 			currentBuffer = (currentBuffer + 1) % int32(len(h.buffersMap))
 			h.RequestUpdate(currentBuffer)
 		},
 		CrtcState: func(state int32, userData any) {
-			evdiLogDebug("crtc: 0x%x", state)
+			evdiLogInfo("event: crtc: 0x%x", state)
 		},
 		CursorSet: func(cursorSet CursorSet, userData any) {
-			evdiLogDebug("cursorSet: %+v", cursorSet)
+			evdiLogInfo("event: cursorSet: %+v", cursorSet)
 		},
 		CursorMove: func(cursorMove CursorMove, userData any) {
-			evdiLogDebug("cursorMove: %+v", cursorMove)
+			evdiLogInfo("event: cursorMove: %+v", cursorMove)
 		},
 		DdcciData: func(data DdcciData, userData any) {
-			evdiLogDebug("ddciData: %+v", data)
+			evdiLogInfo("event: ddciData: %+v", data)
 		},
 	}
 
-	slog.Debug("dummy: connecting")
+	evdiLogDebug("dummy: connecting")
 
 	skuLimit := uint32(1280 * 800)
 	h.Connect(EDIDv1_1280x800, skuLimit)
-	slog.Debug("dummy: connected")
+	evdiLogDebug("dummy: connected")
 	defer h.Disconnect()
 
 	newSelectable := h.GetEventReady()
-	slog.Debug(fmt.Sprintf("dummy: eventGetReady: %v", newSelectable))
-
 	event := unix.PollFd{
 		Events: unix.EPOLLIN,
 		Fd:     int32(newSelectable),
@@ -148,15 +149,14 @@ func (h *Handle) RunDummy(ctx context.Context) error {
 
 		n, err := unix.Poll(events, 1000)
 		if err != nil {
-			evdiLogDebug("epoll wait error: %v\n", err)
+			evdiLogDebug("epoll wait error: %v", err)
 			if err == unix.EINTR {
 				continue
 			}
 			continue
 		}
-
+		evdiLogDebug("polled n=%d", n)
 		if n == 0 {
-			evdiLogDebug("polled n=%d", n)
 			continue
 		}
 		h.HandleEvents(eventsHandler)
@@ -187,6 +187,7 @@ const (
 // }
 
 func (h *Handle) GrabPixels(rects *evdiRect, numRects *int32) {
+	evdiLogInfo("called grabPixels")
 	destinationNode := h.frameBuffersListHead.FindItem(func(a *evdiBuffer) bool {
 		return a.id == h.bufferToUpdate
 	})

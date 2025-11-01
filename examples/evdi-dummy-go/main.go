@@ -28,7 +28,7 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
-	ctx2, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx2, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
 
 	slog.Info("main: starting dummy")

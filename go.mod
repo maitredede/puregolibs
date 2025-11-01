@@ -6,7 +6,7 @@ require (
 	github.com/ebitengine/purego v0.9.0
 	github.com/jupiterrider/ffi v0.5.1
 	github.com/neilotoole/slogt v1.1.0
-	github.com/prometheus/procfs v0.19.1
+	github.com/prometheus/procfs v0.19.2
 	github.com/srlehn/edid v0.0.0-20241113165233-7a35100a4e62
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/image v0.32.0

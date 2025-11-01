@@ -167,7 +167,7 @@ func (h *Handle) HandleEvents(handlers EventHandlers) {
 		evdiLogDebug("events: i=%d", i)
 
 		e := (*drmEvent)(unsafe.Pointer(&buffer[i]))
-		evdiLogDebug("events: e=%+v", e)
+		evdiLogDebug("events: e.typ=%s e.length=%d", e.typ.String(), e.length)
 		h.dispatchEvent(handlers, e)
 
 		i += int(e.length)
@@ -265,6 +265,7 @@ func (h *Handle) addFrameBuffer(buffer *evdiBuffer) {
 }
 
 func (h *Handle) RequestUpdate(bufferID int32) bool {
+	evdiLogDebug("called requestUpdate id=%d", bufferID)
 	h.bufferToUpdate = bufferID
 
 	cmd := drmEvdiRequestUpdate{}
