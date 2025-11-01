@@ -49,6 +49,8 @@ func (h *Handle) RunDummy(ctx context.Context) error {
 	slog.Info("dummy: enabling cursor events")
 	h.EnableCursorEvents(true)
 
+	var currentBuffer int32
+
 	eventsHandler := EventHandlers{
 		ModeChanged: func(mode Mode, userdata any) {
 			slog.Info(fmt.Sprintf("mode: %+v", mode))
@@ -69,6 +71,10 @@ func (h *Handle) RunDummy(ctx context.Context) error {
 				data := make([]byte, buffer.height*buffer.stride)
 				buffer.buffer = &data[0]
 
+				buffer.rectCount = MAX_DIRTS
+				rectArr := make([]evdiRect, buffer.rectCount)
+				buffer.rects = &rectArr[0]
+
 				h.RegisterBuffer(buffer)
 				b := bufferData{
 					data:   data,
@@ -79,25 +85,27 @@ func (h *Handle) RunDummy(ctx context.Context) error {
 			h.bufferToUpdate = 0
 		},
 
-		Dpms: func(dpmsMode int32, userData any) {
-			slog.Info(fmt.Sprintf("dpms: 0x%x", dpmsMode))
+		Dpms: func(dpmsMode DpmsMode, userData any) {
+			slog.Info(fmt.Sprintf("dpms: %v", dpmsMode))
 		},
 		UpdateReady: func(bufferToUpdate int32, userData any) {
-			slog.Info(fmt.Sprintf("updateReady: %d", bufferToUpdate))
+			evdiLogDebug("updateReady: %d", bufferToUpdate)
 			buff := h.buffersMap[h.bufferToUpdate]
 			h.GrabPixels(buff.buffer.rects, &buff.buffer.rectCount)
+			currentBuffer = (currentBuffer + 1) % int32(len(h.buffersMap))
+			h.RequestUpdate(currentBuffer)
 		},
 		CrtcState: func(state int32, userData any) {
-			slog.Info(fmt.Sprintf("crtc: 0x%x", state))
+			evdiLogDebug("crtc: 0x%x", state)
 		},
 		CursorSet: func(cursorSet CursorSet, userData any) {
-			slog.Info(fmt.Sprintf("cursorSet: %+v", cursorSet))
+			evdiLogDebug("cursorSet: %+v", cursorSet)
 		},
 		CursorMove: func(cursorMove CursorMove, userData any) {
-			slog.Info(fmt.Sprintf("cursorMove: %+v", cursorMove))
+			evdiLogDebug("cursorMove: %+v", cursorMove)
 		},
 		DdcciData: func(data DdcciData, userData any) {
-			slog.Info(fmt.Sprintf("ddciData: %+v", data))
+			evdiLogDebug("ddciData: %+v", data)
 		},
 	}
 
@@ -126,21 +134,24 @@ func (h *Handle) RunDummy(ctx context.Context) error {
 		default:
 		}
 
-		updateReady := h.RequestUpdate(h.currentBufferIndex)
-		if updateReady {
-			buf := h.buffersMap[h.currentBufferIndex]
+		if len(h.buffersMap) > 0 {
+			updateReady := h.RequestUpdate(currentBuffer)
+			evdiLogDebug("dummy: requestUpdate buff=%d ready=%v", currentBuffer, updateReady)
+			if updateReady {
+				buf := h.buffersMap[currentBuffer]
 
-			h.GrabPixels(buf.buffer.rects, &buf.buffer.rectCount)
-			h.currentBufferIndex = (h.currentBufferIndex + 1) % int32(len(h.buffersMap))
-			continue
+				h.GrabPixels(buf.buffer.rects, &buf.buffer.rectCount)
+				currentBuffer = (currentBuffer + 1) % int32(len(h.buffersMap))
+				continue
+			}
 		}
 
 		n, err := unix.Poll(events, 1000)
 		if err != nil {
+			evdiLogDebug("epoll wait error: %v\n", err)
 			if err == unix.EINTR {
 				continue
 			}
-			evdiLogDebug("epoll wait error: %v\n", err)
 			continue
 		}
 
@@ -184,6 +195,7 @@ func (h *Handle) GrabPixels(rects *evdiRect, numRects *int32) {
 		*numRects = 0
 		return
 	}
+	evdiLogDebug("grabpix: numRects=%v", numRects)
 	destinationBuffer := destinationNode.Item
 
 	kernelDirts := make([]drmClipRect, MAX_DIRTS)
@@ -196,7 +208,7 @@ func (h *Handle) GrabPixels(rects *evdiRect, numRects *int32) {
 		numRects:      MAX_DIRTS,
 		rects:         &kernelDirts[0],
 	}
-	ret := doIoctl(h.fd, DRM_IOCTL_EVDI_GRABPIX, uintptr(unsafe.Pointer(&grab)), "gradpix")
+	ret := doIoctl(h.fd, DRM_IOCTL_EVDI_GRABPIX, uintptr(unsafe.Pointer(&grab)), "grabpix")
 	if ret == 0 {
 		/*
 		 * Buffer was filled by ioctl

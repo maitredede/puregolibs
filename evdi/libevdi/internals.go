@@ -289,7 +289,7 @@ func openAsSlave(devicePath string) (*os.File, error) {
 		return nil, err
 	}
 	if drm.IsMaster(f) {
-		evdiLogInfo("process has master on %s, err: %s", devicePath, "TODO")
+		evdiLogInfo("process has master on %s", devicePath)
 		// err = drmIoctl(f.Fd(), DRM_IOCTL_DROP_MASTER, 0)
 		err = drm.DropMaster(f)
 	}

@@ -18,13 +18,9 @@ type Handle struct {
 	fd          *os.File
 	deviceIndex int
 
-	bufferToUpdate int32
-
-	buffersMap map[int32]bufferData
-
+	buffersMap           map[int32]bufferData
 	frameBuffersListHead linkedlist.LinkedList[*evdiBuffer]
-
-	currentBufferIndex int32
+	bufferToUpdate       int32
 }
 
 const (
@@ -168,15 +164,17 @@ func (h *Handle) HandleEvents(handlers EventHandlers) {
 		if i >= bytesRead {
 			break
 		}
+		evdiLogDebug("events: i=%d", i)
 
 		e := (*drmEvent)(unsafe.Pointer(&buffer[i]))
-		h.handleEvent(handlers, e)
+		evdiLogDebug("events: e=%+v", e)
+		h.dispatchEvent(handlers, e)
 
 		i += int(e.length)
 	}
 }
 
-func (h *Handle) handleEvent(evtctx EventHandlers, e *drmEvent) {
+func (h *Handle) dispatchEvent(evtctx EventHandlers, e *drmEvent) {
 	switch e.typ {
 	case DRM_EVDI_EVENT_UPDATE_READY:
 		if evtctx.UpdateReady != nil {
@@ -185,7 +183,7 @@ func (h *Handle) handleEvent(evtctx EventHandlers, e *drmEvent) {
 	case DRM_EVDI_EVENT_DPMS:
 		if evtctx.Dpms != nil {
 			event := *(*drmEvdiEventDpms)(unsafe.Pointer(e))
-			evtctx.Dpms(event.mode, evtctx.UserData)
+			evtctx.Dpms(DpmsMode(event.mode), evtctx.UserData)
 		}
 	case DRM_EVDI_EVENT_MODE_CHANGED:
 		if evtctx.ModeChanged != nil {

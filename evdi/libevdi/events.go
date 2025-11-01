@@ -40,7 +40,7 @@ type EventHandlers struct {
 	UserData any
 
 	UpdateReady func(bufferToUpdate int32, userData any)
-	Dpms        func(dpms int32, userData any)
+	Dpms        func(dpms DpmsMode, userData any)
 	ModeChanged func(mode Mode, userData any)
 	CrtcState   func(state int32, userData any)
 	CursorSet   func(cursor CursorSet, userData any)
