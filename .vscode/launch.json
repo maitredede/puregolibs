@@ -14,15 +14,6 @@
       "args": ["-localonly=false"]
     },
     {
-      "name": "examples/evdi-dummy",
-      "type": "go",
-      "request": "launch",
-      "mode": "auto",
-      "program": "${workspaceFolder}/examples/evdi-dummy",
-      "env": {},
-      "args": [""]
-    },
-    {
       "name": "examples/evdi-dummy-go",
       "type": "go",
       "request": "launch",

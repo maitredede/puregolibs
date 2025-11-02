@@ -8,8 +8,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/maitredede/puregolibs/evdi/libevdi"
-	evdi "github.com/maitredede/puregolibs/evdi/libevdi"
+	"github.com/maitredede/puregolibs/libevdi"
 )
 
 func main() {
@@ -19,7 +18,7 @@ func main() {
 	libevdi.SetLogging(slog.Default())
 
 	slog.Info("main: opening evdi device")
-	device, err := evdi.OpenAttachedToNone()
+	device, err := libevdi.OpenAttachedToNone()
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
