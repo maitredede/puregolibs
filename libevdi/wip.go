@@ -18,24 +18,6 @@ type bufferData struct {
 	data   []byte
 }
 
-type evdiBuffer struct {
-	id     int32
-	buffer *byte
-	width  int32
-	height int32
-	stride int32
-
-	rects     *evdiRect
-	rectCount int32
-}
-
-type evdiRect struct {
-	x1 int32
-	y1 int32
-	x2 int32
-	y2 int32
-}
-
 func OpenAttachedToNone() (*Handle, error) {
 	return OpenAttachedTo("")
 }
@@ -135,17 +117,17 @@ func (h *Handle) RunDummy(ctx context.Context) error {
 		default:
 		}
 
-		if len(h.buffersMap) > 0 {
-			updateReady := h.RequestUpdate(currentBuffer)
-			evdiLogDebug("dummy: requestUpdate buff=%d ready=%v", currentBuffer, updateReady)
-			if updateReady {
-				buf := h.buffersMap[currentBuffer]
+		// if len(h.buffersMap) > 0 {
+		// 	updateReady := h.RequestUpdate(currentBuffer)
+		// 	evdiLogDebug("dummy: requestUpdate buff=%d ready=%v", currentBuffer, updateReady)
+		// 	if updateReady {
+		// 		buf := h.buffersMap[currentBuffer]
 
-				h.GrabPixels(buf.buffer.rects, &buf.buffer.rectCount)
-				currentBuffer = (currentBuffer + 1) % int32(len(h.buffersMap))
-				continue
-			}
-		}
+		// 		h.GrabPixels(buf.buffer.rects, &buf.buffer.rectCount)
+		// 		currentBuffer = (currentBuffer + 1) % int32(len(h.buffersMap))
+		// 		continue
+		// 	}
+		// }
 
 		n, err := unix.Poll(events, 1000)
 		if err != nil {
@@ -167,24 +149,6 @@ func (h *Handle) RunDummy(ctx context.Context) error {
 const (
 	MAX_DIRTS = 16
 )
-
-// func (h *Handle) cardRequestUpdate() {
-// 	if h.cardBufferRequested >= 0 {
-// 		return
-// 	}
-// 	h.cardBufferRequested = (h.cardBufferRequested + 1) % int32(len(h.buffersArr))
-
-// 	updateReady := h.RequestUpdate(h.buffersArr[h.cardBufferRequested].buffer.id)
-// 	if updateReady {
-// 		h.cardGrabPixels()
-// 	}
-// }
-
-// func (h *Handle) cardGrabPixels() {
-// 	if h.cardBufferRequested < 0 {
-// 		return
-// 	}
-// }
 
 func (h *Handle) GrabPixels(rects *evdiRect, numRects *int32) {
 	evdiLogInfo("called grabPixels")

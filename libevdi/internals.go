@@ -190,18 +190,17 @@ func isEvdiCompatible(fd *os.File) bool {
 }
 
 func waitForMaster(devicePath string) {
-	totalWaitUS := 5_000_000
-	sleepIntervalUs := 100_000
-	cnt := totalWaitUS / sleepIntervalUs
+	totalWait := 5 * time.Second
+	sleepInterval := 100 * time.Millisecond
 
 	hasMaster := false
+	start := time.Now()
 	for {
 		hasMaster = deviceHasMaster(devicePath)
-		cnt--
-		if hasMaster || cnt < 0 {
+		if hasMaster || time.Since(start) > totalWait {
 			break
 		}
-		time.Sleep(time.Duration(sleepIntervalUs) * time.Microsecond)
+		time.Sleep(sleepInterval)
 	}
 	if !hasMaster {
 		evdiLogInfo("wait for master timed out")
@@ -236,7 +235,7 @@ func processOpenedFiles(p procfs.Proc, deviceFilePath string) bool {
 	isMatch := false
 	targets, err := p.FileDescriptorTargets()
 	if err != nil {
-		evdiLogDebug("processOpenedFiles %v: %v", p, err)
+		// evdiLogDebug("processOpenedFiles %v: %v", p, err)
 		return false
 	}
 	for _, t := range targets {
@@ -250,7 +249,7 @@ func processOpenedFiles(p procfs.Proc, deviceFilePath string) bool {
 func processOpenedDevice(p procfs.Proc, deviceFilePath string) bool {
 	maps, err := p.ProcMaps()
 	if err != nil {
-		evdiLogDebug("processOpenedDevice %v: %v", p, err)
+		// evdiLogDebug("processOpenedDevice %v: %v", p, err)
 		return false
 	}
 	for _, m := range maps {
@@ -265,17 +264,16 @@ func waitForDevice(devicePath string) (*os.File, error) {
 	var f *os.File
 	var err error
 
-	totalWaitUS := 5000000
-	SleepIntervalUS := 100000
-	cnt := totalWaitUS / SleepIntervalUS
+	totalWait := 5 * time.Second
+	sleepInterval := 100 * time.Millisecond
 
+	start := time.Now()
 	for {
-		cnt--
 		f, err = openAsSlave(devicePath)
-		if f != nil || cnt < 0 {
+		if f != nil || time.Since(start) > totalWait {
 			break
 		}
-		time.Sleep(time.Duration(SleepIntervalUS) * time.Microsecond)
+		time.Sleep(sleepInterval)
 	}
 	if err != nil {
 		evdiLogError("failed to open a device: %v", err)

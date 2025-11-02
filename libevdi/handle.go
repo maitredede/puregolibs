@@ -152,22 +152,18 @@ func (h *Handle) PollEvents(timeoutMS int, handlers EventHandlers) {
 }
 
 func (h *Handle) HandleEvents(handlers EventHandlers) {
-
 	buffer := make([]byte, 1024)
 	bytesRead, err := h.fd.Read(buffer)
 	if err != nil {
 		evdiLogDebug("TODO handleEvents read error: %v", err)
 	}
-	evdiLogDebug("events: bytesRead=%d", bytesRead)
 	var i int
 	for {
 		if i >= bytesRead {
 			break
 		}
-		evdiLogDebug("events: i=%d", i)
-
 		e := (*drmEvent)(unsafe.Pointer(&buffer[i]))
-		evdiLogDebug("events: e.typ=%s e.length=%d", e.typ.String(), e.length)
+		evdiLogDebug("events: i=%d/%d e.typ=%s e.length=%d", i, bytesRead, e.typ.String(), e.length)
 		h.dispatchEvent(handlers, e)
 
 		i += int(e.length)
