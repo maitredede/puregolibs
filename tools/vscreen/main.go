@@ -20,9 +20,9 @@ import "C"
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
+	"syscall"
 	"time"
 	"unsafe"
 
@@ -33,11 +33,14 @@ import (
 func main() {
 	flag.Parse()
 
-	slog.SetLogLoggerLevel(slog.LevelDebug)
-	C.set_evdi_log(nil)
+	// slog.SetLogLoggerLevel(slog.LevelDebug)
+	// C.set_evdi_log(nil)
 
 	h := C.evdi_open_attached_to_fixed(nil, 0)
-	slog.Info(fmt.Sprintf("h=%v", h))
+	if h == nil {
+		// slog.Error("failed to open evdi device")
+		os.Exit(1)
+	}
 	defer C.evdi_close(h)
 
 	edid := resources.EDIDv1_1280x800
@@ -56,7 +59,7 @@ func main() {
 	for {
 		select {
 		case <-ctx.Done():
-			slog.Warn(ctx.Err().Error())
+			// slog.Warn(ctx.Err().Error())
 			os.Exit(1)
 			return
 		default:
@@ -66,7 +69,10 @@ func main() {
 		}
 		n, err := unix.Poll(fds, 1000)
 		if err != nil {
-			slog.Debug(fmt.Sprintf("poll n=%v err=%v", n, err))
+			if err == syscall.EINTR {
+				continue
+			}
+			// slog.Debug(fmt.Sprintf("poll n=%v err=%v", n, err))
 		}
 		if n > 0 {
 			C.evdi_handle_events(h, &events)
@@ -76,7 +82,7 @@ func main() {
 
 //export go_dpms_handler
 func go_dpms_handler(dpmsMode C.int, userData unsafe.Pointer) {
-	slog.Info(fmt.Sprintf("dpms: %v", dpmsMode))
+	// slog.Info(fmt.Sprintf("dpms: %v", dpmsMode))
 }
 
 var (
@@ -86,7 +92,7 @@ var (
 
 //export go_mode_changed_handler
 func go_mode_changed_handler(mode C.struct_evdi_mode, userData unsafe.Pointer) {
-	slog.Info(fmt.Sprintf("mode: %v", mode))
+	// slog.Info(fmt.Sprintf("mode: %v", mode))
 
 	h := C.evdi_handle(userData)
 
@@ -149,30 +155,30 @@ func grab_pixels(h C.evdi_handle) {
 
 //export go_update_ready_handler
 func go_update_ready_handler(bufferToBeUpdated C.int, userData unsafe.Pointer) {
-	slog.Info(fmt.Sprintf("updateReady: %v", bufferToBeUpdated))
+	// slog.Info(fmt.Sprintf("updateReady: %v", bufferToBeUpdated))
 	h := C.evdi_handle(userData)
 	grab_pixels(h)
 }
 
 //export go_crtc_state_handler
 func go_crtc_state_handler(state C.int, userData unsafe.Pointer) {
-	slog.Info(fmt.Sprintf("crtcState: %v", state))
+	// slog.Info(fmt.Sprintf("crtcState: %v", state))
 }
 
 //export go_cursor_set_handler
 func go_cursor_set_handler(cursorSet C.struct_evdi_cursor_set, userData unsafe.Pointer) {
-	slog.Info(fmt.Sprintf("cursorSet: %v", cursorSet))
+	// slog.Info(fmt.Sprintf("cursorSet: %v", cursorSet))
 	C.free(unsafe.Pointer(cursorSet.buffer))
 }
 
 //export go_cursor_move_handler
 func go_cursor_move_handler(cursorMove C.struct_evdi_cursor_move, userData unsafe.Pointer) {
-	slog.Info(fmt.Sprintf("cursorMove: %v", cursorMove))
+	// slog.Info(fmt.Sprintf("cursorMove: %v", cursorMove))
 }
 
 //export go_ddcci_data_handler
 func go_ddcci_data_handler(ddcciData C.struct_evdi_ddcci_data, userData unsafe.Pointer) {
-	slog.Info(fmt.Sprintf("ddcciData: %v", ddcciData))
+	// slog.Info(fmt.Sprintf("ddcciData: %v", ddcciData))
 }
 
 //export go_log

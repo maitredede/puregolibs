@@ -42,7 +42,7 @@ static void my_evdi_log(void *user_data, const char *fmt, ...)
 
     va_list args;
     va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args); // 256 = taille max du buffer
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
 
     go_log(user_data, buffer);
