@@ -28,6 +28,20 @@
       "hideSystemGoroutines": true
     },
     {
+      "name": "tools/vscreen",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/tools/vscreen",
+      "env": {
+        "PATH": "${env:PATH}:/usr/local/go/bin/"
+      },
+      "args": [""],
+      "asRoot": true,
+      "console": "integratedTerminal",
+      "hideSystemGoroutines": true
+    },
+    {
       "name": "examples/gousb-events",
       "type": "go",
       "request": "launch",
