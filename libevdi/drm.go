@@ -36,15 +36,21 @@ func drmIoctl(fd uintptr, req uintptr, arg uintptr) syscall.Errno {
 	var errno syscall.Errno
 	for {
 		ret, _, errno = unix.Syscall(unix.SYS_IOCTL, fd, req, arg)
-		// (ret == -1 && (errno == EINTR || erno == EAGAIN))
-		do := (^ret == 0 && (errno == syscall.EINTR || errno == syscall.EAGAIN))
-		if !do {
-			break
+		if errno == syscall.EINTR || errno == syscall.EAGAIN {
+			continue
 		}
+		// // (ret == -1 && (errno == EINTR || erno == EAGAIN))
+		// do := (^ret == 0 && (errno == syscall.EINTR || errno == syscall.EAGAIN))
+		// if !do {
+		// 	break
+		// }
+		evdiLogDebug("drmIoctl: ret=%08x err=%v", ret, errno)
+
+		break
 	}
-	if errno != 0 {
-		evdiLogDebug("drmIoctl: err=%v", errno)
-	}
+	// if errno != 0 {
+	// 	evdiLogDebug("drmIoctl: err=%v", errno)
+	// }
 	return errno
 }
 

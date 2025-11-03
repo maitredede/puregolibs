@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -16,6 +17,8 @@ func main() {
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 	libevdi.SetLogging(slog.Default())
+
+	slog.Info(fmt.Sprintf("uid=%d euid=%d gid=%d egid=%d", os.Getuid(), os.Geteuid(), os.Getgid(), os.Getegid()))
 
 	slog.Info("main: opening evdi device")
 	device, err := libevdi.OpenAttachedToNone()
