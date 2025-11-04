@@ -12,9 +12,12 @@ func grabPixelsXRGB8888(data []byte, rect image.Rectangle, dest *image.RGBA) {
 			offset := (y*dest.Bounds().Dx() + x) * 4
 
 			// XRGB8888: byte 0 = X (ignoré), 1 = R, 2 = G, 3 = B
-			r := data[offset+1]
-			g := data[offset+2]
-			b := data[offset+3]
+			// r := data[offset+1]
+			// g := data[offset+2]
+			// b := data[offset+3]
+			b := data[offset+0]
+			g := data[offset+1]
+			r := data[offset+2]
 
 			dest.Set(x, y, color.RGBA{R: r, G: g, B: b, A: 255})
 		}
