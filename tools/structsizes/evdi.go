@@ -11,7 +11,7 @@ import "C"
 import (
 	"fmt"
 
-	"github.com/maitredede/puregolibs/libevdi"
+	libevdi "github.com/maitredede/puregolibs/libevdi/previousattempt"
 )
 
 func dumpEvdi() {

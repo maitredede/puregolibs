@@ -31,11 +31,11 @@ func dumpDrm() {
 		fmt.Printf("drm: C.%s=0x%08x drm.%s=0x%08x eq=%v\n", e.nn, e.nv, e.gn, e.gv, e.nv == e.gv)
 	}
 
-	fourccs := []valueEntry{
+	fourccs := []fourccEntry{
 		{nv: C.DRM_FORMAT_ARGB8888, nn: "DRM_FORMAT_ARGB8888", gv: drm.DRM_FORMAT_ARGB8888, gn: "DRM_FORMAT_ARGB8888"},
 	}
 	for _, e := range fourccs {
-		fmt.Printf("drm: C.%s=0x%08x drm.%s=0x%08x eq=%v\n", e.nn, e.nv, e.gn, e.gv, e.nv == e.gv)
+		fmt.Printf("drm: C.%s=0x%08x drm.%s=0x%08x eq=%v\n", e.nn, e.nv, e.gn, e.gv, e.nv == uint32(e.gv))
 	}
 }
 
@@ -43,5 +43,12 @@ type valueEntry struct {
 	nv uint32
 	nn string
 	gv uint32
+	gn string
+}
+
+type fourccEntry struct {
+	nv uint32
+	nn string
+	gv drm.Fourcc
 	gn string
 }

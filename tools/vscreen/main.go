@@ -50,15 +50,20 @@ func main() {
 	}
 	defer C.evdi_close(h)
 
+	dw := 1280
+	dh := 800
 	edid := resources.EDIDv1_1280x800
+	// dw := 16
+	// dh := 16
+	// edid := GenerateEDID(dw, dh, 30)
 	edidPtr := (*C.uchar)(unsafe.Pointer(&edid[0]))
 	edidLen := C.uint(len(edid))
-	C.evdi_connect(h, edidPtr, edidLen, 1280*800)
+	C.evdi_connect(h, edidPtr, edidLen, C.uint(dw*dh))
 	defer C.evdi_disconnect(h)
 
 	C.evdi_enable_cursor_events(h, true)
 
-	ctxTimeout, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	ctxTimeout, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	ctx, stop := signal.NotifyContext(ctxTimeout, os.Interrupt, os.Kill)
@@ -67,20 +72,24 @@ func main() {
 	mainCtx(ctx, h)
 
 	filename := "screenshot.png"
-	out, err := os.Create(filename)
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
-	defer out.Close()
+	if myDisplay != nil {
+		out, err := os.Create(filename)
+		if err != nil {
+			slog.Error(err.Error())
+			os.Exit(1)
+		}
+		defer out.Close()
 
-	if err := png.Encode(out, myDisplay); err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
-	out.Sync()
+		if err := png.Encode(out, myDisplay); err != nil {
+			slog.Error(err.Error())
+			os.Exit(1)
+		}
+		out.Sync()
 
-	slog.Info(fmt.Sprintf("written %s", filename))
+		slog.Info(fmt.Sprintf("written %s", filename))
+	} else {
+		slog.Warn(fmt.Sprintf("can't generate %s", filename))
+	}
 }
 
 func mainCtx(ctx context.Context, h C.evdi_handle) {
@@ -122,6 +131,8 @@ var (
 	myDisplay            *image.RGBA
 	myDisplayPixelFormat drm.Fourcc
 	myGrabber            pixelsGrabber
+	myCursor             *myCursorInfo
+	myCursorPos          image.Point
 )
 
 //export go_mode_changed_handler
@@ -222,15 +233,40 @@ func go_crtc_state_handler(state C.int, userData unsafe.Pointer) {
 	slog.Info(fmt.Sprintf("crtcState: %v", state))
 }
 
+type myCursorInfo struct {
+	hot         image.Point
+	width       int
+	height      int
+	pixelFormat uint32
+	bufferData  []uint32
+}
+
 //export go_cursor_set_handler
 func go_cursor_set_handler(cursorSet C.struct_evdi_cursor_set, userData unsafe.Pointer) {
-	slog.Info(fmt.Sprintf("cursorSet: %v", cursorSet))
-	C.free(unsafe.Pointer(cursorSet.buffer))
+	slog.Info(fmt.Sprintf("cursorSet: %+v", cursorSet))
+	defer C.free(unsafe.Pointer(cursorSet.buffer))
+
+	if cursorSet.enabled != 0 {
+		myCursor = &myCursorInfo{
+			hot:         image.Pt(int(cursorSet.hot_x), int(cursorSet.hot_y)),
+			width:       int(cursorSet.width),
+			height:      int(cursorSet.height),
+			pixelFormat: uint32(cursorSet.pixel_format),
+		}
+		if cursorSet.buffer_length > 0 {
+			myCursor.bufferData = unsafe.Slice((*uint32)(unsafe.Pointer(cursorSet.buffer)), cursorSet.buffer_length)
+		}
+	} else {
+		myCursor = nil
+		// position outside display
+		myCursorPos = image.Pt(myDisplay.Rect.Max.X+myCursor.width, myDisplay.Rect.Max.Y+myCursor.height)
+	}
 }
 
 //export go_cursor_move_handler
 func go_cursor_move_handler(cursorMove C.struct_evdi_cursor_move, userData unsafe.Pointer) {
 	slog.Info(fmt.Sprintf("cursorMove: %v", cursorMove))
+	myCursorPos = image.Pt(int(cursorMove.x), int(cursorMove.y))
 }
 
 //export go_ddcci_data_handler
