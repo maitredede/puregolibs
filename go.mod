@@ -6,7 +6,7 @@ require (
 	github.com/ebitengine/purego v0.9.1
 	github.com/jupiterrider/ffi v0.5.1
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/image v0.32.0
+	golang.org/x/image v0.33.0
 	golang.org/x/sys v0.38.0
 )
 
