@@ -67,6 +67,17 @@ func initLibNoPanic() {
 	purego.RegisterLibFunc(&libudevSetLogPriority, libPtr, "udev_set_log_priority")
 	purego.RegisterLibFunc(&libudevGetUserData, libPtr, "udev_get_userdata")
 	purego.RegisterLibFunc(&libudevSetUserData, libPtr, "udev_set_userdata")
+
+	purego.RegisterLibFunc(&libudevEnumerateNew, libPtr, "udev_enumerate_new")
+	purego.RegisterLibFunc(&libudevEnumerateRef, libPtr, "udev_enumerate_ref")
+	purego.RegisterLibFunc(&libudevEnumerateUnref, libPtr, "udev_enumerate_unref")
+	purego.RegisterLibFunc(&libudevEnumerateScanDevices, libPtr, "udev_enumerate_scan_devices")
+	purego.RegisterLibFunc(&libudevEnumerateAddMatchSubsystem, libPtr, "udev_enumerate_add_match_subsystem")
+	purego.RegisterLibFunc(&libudevEnumerateGetListEntry, libPtr, "udev_enumerate_get_list_entry")
+
+	purego.RegisterLibFunc(&libudevListEntryGetNext, libPtr, "udev_list_entry_get_next")
+	purego.RegisterLibFunc(&libudevListEntryGetName, libPtr, "udev_list_entry_get_name")
+	purego.RegisterLibFunc(&libudevListEntryGetValue, libPtr, "udev_list_entry_get_value")
 }
 
 var (
@@ -78,4 +89,15 @@ var (
 	libudevSetLogPriority func(udev UDev, priority int32)
 	libudevGetUserData    func(udev UDev) unsafe.Pointer
 	libudevSetUserData    func(udev UDev, userData unsafe.Pointer)
+
+	libudevEnumerateNew               func(udev UDev) Enumerate
+	libudevEnumerateRef               func(enumerate Enumerate)
+	libudevEnumerateUnref             func(enumerate Enumerate)
+	libudevEnumerateScanDevices       func(enumerate Enumerate) int32
+	libudevEnumerateAddMatchSubsystem func(enumerate Enumerate, subsystem string)
+	libudevEnumerateGetListEntry      func(enumerate Enumerate) ListEntry
+
+	libudevListEntryGetNext  func(entry ListEntry) ListEntry
+	libudevListEntryGetName  func(entry ListEntry) string
+	libudevListEntryGetValue func(entry ListEntry) string
 )
