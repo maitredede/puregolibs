@@ -51,6 +51,8 @@ func SetLogFn(udev UDev, fn LogFn) {
 	if status := ffi.PrepClosureLoc(track.logClosure, &cifCallback, fncb, userData, callback); status != ffi.OK {
 		panic(status)
 	}
+
+	libudevSetLogFn(udev, callback)
 }
 
 func logFnCallback(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {

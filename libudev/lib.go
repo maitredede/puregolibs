@@ -78,6 +78,32 @@ func initLibNoPanic() {
 	purego.RegisterLibFunc(&libudevListEntryGetNext, libPtr, "udev_list_entry_get_next")
 	purego.RegisterLibFunc(&libudevListEntryGetName, libPtr, "udev_list_entry_get_name")
 	purego.RegisterLibFunc(&libudevListEntryGetValue, libPtr, "udev_list_entry_get_value")
+
+	purego.RegisterLibFunc(&libudevDeviceRef, libPtr, "udev_device_ref")
+	purego.RegisterLibFunc(&libudevDeviceUnref, libPtr, "udev_device_unref")
+	purego.RegisterLibFunc(&libudevDeviceNewFromSyspath, libPtr, "udev_device_new_from_syspath")
+	purego.RegisterLibFunc(&libudevDeviceNewFromDevNum, libPtr, "udev_device_new_from_devnum")
+	purego.RegisterLibFunc(&libudevDeviceNewFromSubsystemSysname, libPtr, "udev_device_new_from_subsystem_sysname")
+	purego.RegisterLibFunc(&libudevDeviceNewFromDeviceID, libPtr, "udev_device_new_from_device_id")
+	purego.RegisterLibFunc(&libudevDeviceNewFromEnvironment, libPtr, "udev_device_new_from_environment")
+
+	purego.RegisterLibFunc(&libudevDeviceGetDevPath, libPtr, "udev_device_get_devpath")
+	purego.RegisterLibFunc(&libudevDeviceGetSubsystem, libPtr, "udev_device_get_subsystem")
+	purego.RegisterLibFunc(&libudevDeviceGetDevType, libPtr, "udev_device_get_devtype")
+	purego.RegisterLibFunc(&libudevDeviceGetSysPath, libPtr, "udev_device_get_syspath")
+	purego.RegisterLibFunc(&libudevDeviceGetSysName, libPtr, "udev_device_get_sysname")
+	purego.RegisterLibFunc(&libudevDeviceGetSysNum, libPtr, "udev_device_get_sysnum")
+	purego.RegisterLibFunc(&libudevDeviceGetDevNode, libPtr, "udev_device_get_devnode")
+	purego.RegisterLibFunc(&libudevDeviceGetAction, libPtr, "udev_device_get_action")
+	purego.RegisterLibFunc(&libudevDeviceGetSysAttrValue, libPtr, "udev_device_get_sysattr_value")
+
+	purego.RegisterLibFunc(&libudevMonitorNewFromNetlink, libPtr, "udev_monitor_new_from_netlink")
+	purego.RegisterLibFunc(&libudevMonitorRef, libPtr, "udev_monitor_ref")
+	purego.RegisterLibFunc(&libudevMonitorUnref, libPtr, "udev_monitor_unref")
+	purego.RegisterLibFunc(&libudevMonitorFilterAddMatchSubsystemDevType, libPtr, "udev_monitor_filter_add_match_subsystem_devtype")
+	purego.RegisterLibFunc(&libudevMonitorEnableReceiving, libPtr, "udev_monitor_enable_receiving")
+	purego.RegisterLibFunc(&libudevMonitorGetFd, libPtr, "udev_monitor_get_fd")
+	purego.RegisterLibFunc(&libudevMonitorReceiveDevice, libPtr, "udev_monitor_receive_device")
 }
 
 var (
@@ -100,4 +126,31 @@ var (
 	libudevListEntryGetNext  func(entry ListEntry) ListEntry
 	libudevListEntryGetName  func(entry ListEntry) string
 	libudevListEntryGetValue func(entry ListEntry) string
+
+	libudevDeviceRef                     func(device Device) Device
+	libudevDeviceUnref                   func(device Device) Device
+	libudevDeviceNewFromSyspath          func(udev UDev, syspath string) Device
+	libudevDeviceNewFromDevNum           func(udev UDev, typ byte, devnum uint32) Device
+	libudevDeviceNewFromSubsystemSysname func(udev UDev, subsystem string, sysname string) Device
+	libudevDeviceNewFromDeviceID         func(udev UDev, id string) Device
+	libudevDeviceNewFromEnvironment      func(udev UDev) Device
+
+	libudevDeviceGetDevPath   func(device Device) string
+	libudevDeviceGetSubsystem func(device Device) string
+	libudevDeviceGetDevType   func(device Device) string
+	libudevDeviceGetSysPath   func(device Device) string
+	libudevDeviceGetSysName   func(device Device) string
+	libudevDeviceGetSysNum    func(device Device) string
+	libudevDeviceGetDevNode   func(device Device) string
+	libudevDeviceGetAction    func(device Device) string
+
+	libudevDeviceGetSysAttrValue func(device Device, sysattr string) string
+
+	libudevMonitorNewFromNetlink                 func(udev UDev, name string) Monitor
+	libudevMonitorRef                            func(monitor Monitor) Monitor
+	libudevMonitorUnref                          func(monitor Monitor) Monitor
+	libudevMonitorFilterAddMatchSubsystemDevType func(mon Monitor, subsystem string, devType string) int32
+	libudevMonitorEnableReceiving                func(mon Monitor) int32
+	libudevMonitorGetFd                          func(mon Monitor) uintptr
+	libudevMonitorReceiveDevice                  func(mon Monitor) Device
 )
