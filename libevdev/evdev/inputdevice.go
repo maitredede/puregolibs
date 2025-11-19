@@ -1,7 +1,10 @@
 package evdev
 
 import (
+	"bytes"
+	"encoding/binary"
 	"os"
+	"syscall"
 
 	"github.com/maitredede/puregolibs/libevdev"
 )
@@ -51,4 +54,58 @@ func (d *InputDevice) Name() string {
 // Path returns the device's node path it was opened under.
 func (d *InputDevice) Path() string {
 	return d.file.Name()
+}
+
+// NonBlock sets file descriptor into nonblocking mode.
+// This way it is possible to interrupt ReadOne call by closing the device.
+// Note: file.Fd() call will set file descriptor back to blocking mode so make sure your program
+// is not using any other method than ReadOne after NonBlock call.
+func (d *InputDevice) NonBlock() error {
+	return syscall.SetNonblock(int(d.file.Fd()), true)
+}
+
+// Read and returns a slice of InputEvents from the device.
+// It blocks until events has been received or an error has occurred.
+func (d *InputDevice) ReadSlice(eventSlice int) ([]InputEvent, error) {
+	buffer := make([]byte, eventsize*eventSlice)
+
+	bytesRead, err := d.file.Read(buffer)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate how many complete events we actually got
+	count := bytesRead / eventsize
+	if count == 0 {
+		return nil, nil // no complete event in this read
+	}
+
+	// Create events slice dynamically
+	events := make([]InputEvent, count)
+
+	reader := bytes.NewReader(buffer[:bytesRead])
+	if err = binary.Read(reader, binary.LittleEndian, &events); err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}
+
+// ReadOne reads one InputEvent from the device. It blocks until an event has
+// been received or an error has occurred.
+func (d *InputDevice) ReadOne() (*InputEvent, error) {
+	event := InputEvent{}
+
+	err := binary.Read(d.file, binary.LittleEndian, &event)
+	if err != nil {
+		return nil, err
+	}
+
+	return &event, nil
+}
+
+// WriteOne writes one InputEvent to the device.
+// Useful for controlling LEDs of the device
+func (d *InputDevice) WriteOne(event *InputEvent) error {
+	return binary.Write(d.file, binary.LittleEndian, event)
 }
