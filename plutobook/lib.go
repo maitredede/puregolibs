@@ -2,6 +2,8 @@ package plutobook
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -104,6 +106,17 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libResourceDataCreate, initPtr, "plutobook_resource_data_create")
 	purego.RegisterLibFunc(&libResourceDataDestroy, initPtr, "plutobook_resource_data_destroy")
 	purego.RegisterLibFunc(&libResourceDataGetReferenceCount, initPtr, "plutobook_resource_data_get_reference_count")
+
+	if libVersion() >= 0*10000+11*100+0 {
+		purego.RegisterLibFunc(&libSetFontconfigPath, initPtr, "plutobook_set_fontconfig_path")
+	} else {
+		libSetFontconfigPath = func(path string) {
+			err := os.Setenv("FONTCONFIG_PATH", path)
+			if err != nil {
+				slog.Warn(fmt.Sprintf("set env FONTCONFIG_PATH error: %v", err))
+			}
+		}
+	}
 }
 
 type stringPtr unsafe.Pointer
@@ -170,6 +183,8 @@ var (
 
 	libGetErrorMessage   func() string
 	libClearErrorMessage func() string
+
+	libSetFontconfigPath func(path string)
 )
 
 func registerFFIGetPageSize() {
