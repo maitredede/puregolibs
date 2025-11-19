@@ -3,6 +3,7 @@ package evdev
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"os"
 	"syscall"
 
@@ -20,6 +21,40 @@ type InputDevice struct {
 func (d *InputDevice) Close() error {
 	libevdev.Free(d.evdev)
 	return d.file.Close()
+}
+
+// Open creates a new InputDevice from the given path. The input device is
+// opened with flag O_RDWR. Returns an error if the device node could not
+// be opened or its properties failed to read.
+func Open(path string) (*InputDevice, error) {
+	return OpenWithFlags(path, os.O_RDWR)
+}
+
+// OpenByNameWithFlags creates a new InputDevice from the device name as reported
+// by the kernel. The input device is opened with the specified flags (O_RDONLY etc.).
+// It is the responsibility of the user to provide sane flags and handle potential errors
+// resulting from inappropriate flag combinations or permissions.
+// Returns an error if the name does not exist, or the device node could
+// not be opened or its properties failed to read.
+func OpenByNameWithFlags(name string, flags int) (*InputDevice, error) {
+	devices, err := ListDevicePaths()
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range devices {
+		if d.Name == name {
+			return OpenWithFlags(d.Path, flags)
+		}
+	}
+	return nil, fmt.Errorf("could not find input device with name %q", name)
+}
+
+// OpenByName creates a new InputDevice from the device name as reported by the kernel.
+// The input device is opened with flag O_RDWR.
+// Returns an error if the name does not exist, or the device node could
+// not be opened or its properties failed to read.
+func OpenByName(name string) (*InputDevice, error) {
+	return OpenByNameWithFlags(name, os.O_RDWR)
 }
 
 // OpenWithFlags creates a new InputDevice from the given path. The input device
@@ -108,4 +143,15 @@ func (d *InputDevice) ReadOne() (*InputEvent, error) {
 // Useful for controlling LEDs of the device
 func (d *InputDevice) WriteOne(event *InputEvent) error {
 	return binary.Write(d.file, binary.LittleEndian, event)
+}
+
+// InputID returns the device's vendor/product/busType/version information as reported by the kernel.
+func (d *InputDevice) InputID() (InputID, error) {
+	id := InputID{
+		BusType: libevdev.GetIDBusType(d.evdev),
+		Vendor:  libevdev.GetIDVendor(d.evdev),
+		Product: libevdev.GetIDProduct(d.evdev),
+		Version: libevdev.GetIDVersion(d.evdev),
+	}
+	return id, nil
 }
