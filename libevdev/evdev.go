@@ -36,3 +36,15 @@ func SetFd(evdev Evdev, fd uintptr) error {
 	}
 	return fmt.Errorf("TODO error %v", ret)
 }
+
+func GetDriverVersion(evdev Evdev) int32 {
+	initLib()
+
+	return libevdevGetDriverVersion(evdev)
+}
+
+func GetName(evdev Evdev) string {
+	initLib()
+
+	return libevdevGetName(evdev)
+}

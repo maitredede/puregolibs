@@ -61,10 +61,16 @@ func initLibNoPanic() {
 	purego.RegisterLibFunc(&libevdevNew, libPtr, "libevdev_new")
 	purego.RegisterLibFunc(&libevdevFree, libPtr, "libevdev_free")
 	purego.RegisterLibFunc(&libevdevSetFd, libPtr, "libevdev_set_fd")
+
+	purego.RegisterLibFunc(&libevdevGetDriverVersion, libPtr, "libevdev_get_driver_version")
+	purego.RegisterLibFunc(&libevdevGetName, libPtr, "libevdev_get_name")
 }
 
 var (
 	libevdevNew   func() Evdev
 	libevdevFree  func(evdev Evdev)
 	libevdevSetFd func(evdev Evdev, fd uintptr) uintptr
+
+	libevdevGetDriverVersion func(evdev Evdev) int32
+	libevdevGetName          func(evdev Evdev) string
 )
