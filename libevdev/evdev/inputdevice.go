@@ -155,3 +155,22 @@ func (d *InputDevice) InputID() (InputID, error) {
 	}
 	return id, nil
 }
+
+// Grab grabs the device for exclusive access. No other process will receive
+// input events until the device instance is active.
+func (d *InputDevice) Grab() error {
+	ret := libevdev.Grab(d.evdev, true)
+	if ret == 0 {
+		return nil
+	}
+	return syscall.Errno(-ret)
+}
+
+// Ungrab releases a previously taken exclusive use with Grab().
+func (d *InputDevice) Ungrab() error {
+	ret := libevdev.Grab(d.evdev, false)
+	if ret == 0 {
+		return nil
+	}
+	return syscall.Errno(-ret)
+}

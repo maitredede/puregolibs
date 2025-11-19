@@ -68,6 +68,8 @@ func initLibNoPanic() {
 	purego.RegisterLibFunc(&libevdevGetIDVendor, libPtr, "libevdev_get_id_vendor")
 	purego.RegisterLibFunc(&libevdevGetIDProduct, libPtr, "libevdev_get_id_product")
 	purego.RegisterLibFunc(&libevdevGetIDVersion, libPtr, "libevdev_get_id_version")
+
+	purego.RegisterLibFunc(&libevdevGrab, libPtr, "libevdev_grab")
 }
 
 var (
@@ -81,4 +83,6 @@ var (
 	libevdevGetIDVendor      func(evdev Evdev) uint16
 	libevdevGetIDProduct     func(evdev Evdev) uint16
 	libevdevGetIDVersion     func(evdev Evdev) uint16
+
+	libevdevGrab func(evdev Evdev, grab bool) int32
 )
