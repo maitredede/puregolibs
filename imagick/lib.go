@@ -59,12 +59,15 @@ func libInit() {
 	RegisterLibFunc(&libWandIsMagickWand, libWand, "IsMagickWand")
 	RegisterLibFunc(&libWandDestroyMagickWand, libWand, "DestroyMagickWand")
 	RegisterLibFunc(&libWandMagickReadImageBlob, libWand, "MagickReadImageBlob")
+	RegisterLibFunc(&libWandMagickGetImageFormat, libWand, "MagickGetImageFormat")
 	RegisterLibFunc(&libWandMagickSetImageFormat, libWand, "MagickSetImageFormat")
 	RegisterLibFunc(&libWandMagickGetImageBlob, libWand, "MagickGetImageBlob")
 	RegisterLibFunc(&libWandMagickRelinquishMemory, libWand, "MagickRelinquishMemory")
 	RegisterLibFunc(&libWandMagickGetInterlaceScheme, libWand, "MagickGetInterlaceScheme")
 	RegisterLibFunc(&libWandMagickSetInterlaceScheme, libWand, "MagickSetInterlaceScheme")
 	RegisterLibFunc(&libWandMagickGetException, libWand, "MagickGetException")
+	RegisterLibFunc(&libWandMagickSetImageInterlaceScheme, libWand, "MagickSetImageInterlaceScheme")
+	RegisterLibFunc(&libWandMagickGetImageInterlaceScheme, libWand, "MagickGetImageInterlaceScheme")
 }
 
 var (
@@ -72,19 +75,22 @@ var (
 	libCoreGenesis    func()
 	libCoreTerminus   func()
 
-	libWandGetVersion               func() string
-	libWandIsMagickCoreInstantiated func() bool
-	libWandIsMagickWandInstantiated func() bool
-	libWandGenesis                  func()
-	libWandTerminus                 func()
-	libWandNewMagickWand            func() magickWandPtr
-	libWandIsMagickWand             func(wand magickWandPtr) bool
-	libWandDestroyMagickWand        func(wand magickWandPtr) magickWandPtr
-	libWandMagickReadImageBlob      func(wand magickWandPtr, blob *byte, length uint32) bool
-	libWandMagickSetImageFormat     func(wand magickWandPtr, format string) bool
-	libWandMagickGetImageBlob       func(wand magickWandPtr, length *uint32) *byte
-	libWandMagickRelinquishMemory   func(resource unsafe.Pointer)
-	libWandMagickGetInterlaceScheme func(wand magickWandPtr) InterlaceType
-	libWandMagickSetInterlaceScheme func(wand magickWandPtr, scheme InterlaceType) bool
-	libWandMagickGetException       func(wand magickWandPtr, exceptionType *ExceptionType) string
+	libWandGetVersion                    func() string
+	libWandIsMagickCoreInstantiated      func() bool
+	libWandIsMagickWandInstantiated      func() bool
+	libWandGenesis                       func()
+	libWandTerminus                      func()
+	libWandNewMagickWand                 func() magickWandPtr
+	libWandIsMagickWand                  func(wand magickWandPtr) bool
+	libWandDestroyMagickWand             func(wand magickWandPtr) magickWandPtr
+	libWandMagickReadImageBlob           func(wand magickWandPtr, blob *byte, length uint32) bool
+	libWandMagickGetImageFormat          func(wand magickWandPtr) string
+	libWandMagickSetImageFormat          func(wand magickWandPtr, format string) bool
+	libWandMagickGetImageBlob            func(wand magickWandPtr, length *uint32) *byte
+	libWandMagickRelinquishMemory        func(resource unsafe.Pointer)
+	libWandMagickGetInterlaceScheme      func(wand magickWandPtr) InterlaceType
+	libWandMagickSetInterlaceScheme      func(wand magickWandPtr, scheme InterlaceType) bool
+	libWandMagickGetException            func(wand magickWandPtr, exceptionType *ExceptionType) string
+	libWandMagickSetImageInterlaceScheme func(wand magickWandPtr, interlaceType InterlaceType) bool
+	libWandMagickGetImageInterlaceScheme func(wand magickWandPtr) InterlaceType
 )

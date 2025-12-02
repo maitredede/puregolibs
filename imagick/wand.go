@@ -94,6 +94,14 @@ func (w *MagickWand) GetImageBlob() ([]byte, error) {
 	return blob, nil
 }
 
+func (w *MagickWand) GetImageFormat() string {
+	libInit()
+	if !libWandIsMagickWand(w.ptr) {
+		return ""
+	}
+	return libWandMagickGetImageFormat(w.ptr)
+}
+
 func (w *MagickWand) SetImageFormat(format string) error {
 	libInit()
 	if !libWandIsMagickWand(w.ptr) {
@@ -119,3 +127,28 @@ func (w *MagickWand) SetImageFormat(format string) error {
 // 	// native MagickWriteImageFile
 // 	panic("skeleton: imagick.(MagickWand.WriteImageFile)")
 // }
+
+func (w *MagickWand) MagickGetImageInterlaceScheme() (InterlaceType, error) {
+	libInit()
+	if !libWandIsMagickWand(w.ptr) {
+		return UndefinedInterlace, ErrInvalidWand
+	}
+	scheme := libWandMagickGetImageInterlaceScheme(w.ptr)
+	return scheme, nil
+}
+
+func (w *MagickWand) SetImageInterlaceScheme(scheme InterlaceType) error {
+	libInit()
+	if !libWandIsMagickWand(w.ptr) {
+		return ErrInvalidWand
+	}
+	// native MagickSetInterlaceScheme
+	ret := libWandMagickSetImageInterlaceScheme(w.ptr, scheme)
+	if !ret {
+		var t ExceptionType
+		msg := libWandMagickGetException(w.ptr, &t)
+		return &MagickException{m: msg, t: t}
+
+	}
+	return nil
+}
