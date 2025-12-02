@@ -180,3 +180,13 @@ func (w *MagickWand) WriteImage(filename string) error {
 	ok := libWandMagickWriteImage(w.ptr, filename)
 	return w.getLastErrorIfFailed(ok)
 }
+
+// func (w *MagickWand) WriteImageFile(file *os.File) error {
+// 	libInit()
+// 	if !libWandIsMagickWand(w.ptr) {
+// 		return ErrInvalidWand
+// 	}
+// 	// native MagickWriteImageFile
+// 	ok := libWandMagickWriteImageFile(w.ptr, file.Fd())
+// 	return w.getLastErrorIfFailed(ok)
+// }

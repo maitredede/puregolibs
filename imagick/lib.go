@@ -70,6 +70,7 @@ func libInit() {
 	RegisterLibFunc(&libWandMagickSetImageInterlaceScheme, libWand, "MagickSetImageInterlaceScheme")
 	RegisterLibFunc(&libWandMagickGetImageInterlaceScheme, libWand, "MagickGetImageInterlaceScheme")
 	RegisterLibFunc(&libWandMagickWriteImage, libWand, "MagickWriteImage")
+	RegisterLibFunc(&libWandMagickWriteImageFile, libWand, "MagickWriteImageFile")
 }
 
 var (
@@ -97,4 +98,5 @@ var (
 	libWandMagickSetImageInterlaceScheme func(wand magickWandPtr, interlaceType InterlaceType) bool
 	libWandMagickGetImageInterlaceScheme func(wand magickWandPtr) InterlaceType
 	libWandMagickWriteImage              func(wand magickWandPtr, filename string) bool
+	libWandMagickWriteImageFile          func(wand magickWandPtr, cFilePtr unsafe.Pointer) bool
 )

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"image/png"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -57,6 +58,44 @@ func TestMakeProgressivePNG(t *testing.T) {
 	//try to decode with golang png
 	reader := bytes.NewReader(blob)
 	img, err := png.Decode(reader)
+	if err != nil {
+		t.Fatalf("go png decode failed: %v", err)
+	}
+	t.Logf("go img bounds: %v", img.Bounds())
+}
+
+func TestWriteImageFile(t *testing.T) {
+	magickEnv := MagickWandGenesis()
+	t.Cleanup(magickEnv.Terminus)
+
+	w, err := magickEnv.NewMagickWand()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer w.Close()
+
+	t.Logf("source blob size: %d", len(samplePNG))
+	if err := w.ReadImageBlob(samplePNG); err != nil {
+		t.Fatalf("read image error: %v", err)
+	}
+
+	tmpFile, err := os.CreateTemp(t.TempDir(), t.Name()+"*.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tmpFile.Close()
+
+	t.Logf("tmp file: %s", tmpFile.Name())
+
+	if err := w.WriteImage(tmpFile.Name()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tmpFile.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+
+	//try to decode with golang png
+	img, err := png.Decode(tmpFile)
 	if err != nil {
 		t.Fatalf("go png decode failed: %v", err)
 	}
