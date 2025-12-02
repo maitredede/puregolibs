@@ -170,3 +170,13 @@ func (w *MagickWand) SetImageInterlaceScheme(scheme InterlaceType) error {
 	ok := libWandMagickSetImageInterlaceScheme(w.ptr, scheme)
 	return w.getLastErrorIfFailed(ok)
 }
+
+func (w *MagickWand) WriteImage(filename string) error {
+	libInit()
+	if !libWandIsMagickWand(w.ptr) {
+		return ErrInvalidWand
+	}
+	// native MagickWriteImage
+	ok := libWandMagickWriteImage(w.ptr, filename)
+	return w.getLastErrorIfFailed(ok)
+}
