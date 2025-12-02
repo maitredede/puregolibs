@@ -45,8 +45,8 @@ func TestMakeProgressivePNG(t *testing.T) {
 	if err := w.SetImageFormat("PNG"); err != nil {
 		t.Fatalf("image format error: %v", err)
 	}
-	if err := w.SetInterlaceScheme(PlaneInterlace); err != nil {
-		t.Fatalf("interlace scheme error: %v", err)
+	if err := w.SetImageInterlaceScheme(PNGInterlace); err != nil {
+		t.Fatalf("image interlace scheme error: %v", err)
 	}
 	blob, err := w.GetImageBlob()
 	if err != nil {

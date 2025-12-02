@@ -66,6 +66,7 @@ func libInit() {
 	RegisterLibFunc(&libWandMagickGetInterlaceScheme, libWand, "MagickGetInterlaceScheme")
 	RegisterLibFunc(&libWandMagickSetInterlaceScheme, libWand, "MagickSetInterlaceScheme")
 	RegisterLibFunc(&libWandMagickGetException, libWand, "MagickGetException")
+	RegisterLibFunc(&libWandMagickClearException, libWand, "MagickClearException")
 	RegisterLibFunc(&libWandMagickSetImageInterlaceScheme, libWand, "MagickSetImageInterlaceScheme")
 	RegisterLibFunc(&libWandMagickGetImageInterlaceScheme, libWand, "MagickGetImageInterlaceScheme")
 }
@@ -91,6 +92,7 @@ var (
 	libWandMagickGetInterlaceScheme      func(wand magickWandPtr) InterlaceType
 	libWandMagickSetInterlaceScheme      func(wand magickWandPtr, scheme InterlaceType) bool
 	libWandMagickGetException            func(wand magickWandPtr, exceptionType *ExceptionType) string
+	libWandMagickClearException          func(wand magickWandPtr) bool
 	libWandMagickSetImageInterlaceScheme func(wand magickWandPtr, interlaceType InterlaceType) bool
 	libWandMagickGetImageInterlaceScheme func(wand magickWandPtr) InterlaceType
 )
