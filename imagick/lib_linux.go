@@ -4,9 +4,15 @@ package imagick
 
 import "github.com/ebitengine/purego"
 
-const (
-	libCoreName string = "libMagickCore-7.Q16.so"
-	libWandName string = "libMagickWand-7.Q16.so"
+var (
+	libCoreNames = []string{
+		"libMagickCore-7.Q16.so.10",
+		"libMagickCore-7.Q16HDRI.so.10",
+	}
+	libWandNames = []string{
+		"libMagickWand-7.Q16.so.10",
+		"libMagickWand-7.Q16HDRI.so.10",
+	}
 )
 
 var (

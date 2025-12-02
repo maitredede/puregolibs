@@ -22,15 +22,21 @@ func libInit() {
 
 	var initFuncs bool
 	if !isLibLoaded(libCore) {
-		libCore, libCoreError = loadLib(libCoreName)
-		if libCoreError == nil {
-			initFuncs = true
+		for _, libName := range libCoreNames {
+			libCore, libCoreError = loadLib(libName)
+			if libCoreError == nil {
+				initFuncs = true
+				break
+			}
 		}
 	}
 	if !isLibLoaded(libWand) {
-		libWand, libWandError = loadLib(libWandName)
-		if libWandError == nil {
-			initFuncs = true
+		for _, libName := range libWandNames {
+			libWand, libWandError = loadLib(libName)
+			if libWandError == nil {
+				initFuncs = true
+				break
+			}
 		}
 	}
 	if err := errors.Join(libCoreError, libWandError); err != nil {

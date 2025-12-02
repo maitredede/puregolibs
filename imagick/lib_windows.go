@@ -13,6 +13,17 @@ const (
 )
 
 var (
+	libCoreNames = []string{
+		"libMagickCore-7.Q16.dll",
+		"libMagickCore-7.Q16HDRI.dll",
+	}
+	libWandNames = []string{
+		"libMagickWand-7.Q16.dll",
+		"libMagickWand-7.Q16HDRI.dll",
+	}
+)
+
+var (
 	libWand *windows.DLL
 	libCore *windows.DLL
 )
