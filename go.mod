@@ -5,9 +5,10 @@ go 1.25
 require (
 	github.com/ebitengine/purego v0.9.1
 	github.com/jupiterrider/ffi v0.5.1
+	github.com/neilotoole/slogt v1.1.0
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/image v0.33.0
-	golang.org/x/sys v0.38.0
+	golang.org/x/image v0.35.0
+	golang.org/x/sys v0.40.0
 )
 
 require (
