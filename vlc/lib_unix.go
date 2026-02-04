@@ -1,3 +1,5 @@
+//go:build darwin || freebsd || linux || netbsd
+
 package vlc
 
 import (
