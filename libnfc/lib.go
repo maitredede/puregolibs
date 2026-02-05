@@ -43,7 +43,8 @@ func libInitFuncs() {
 	purego.RegisterLibFunc(&libNfcRegisterDriver, initPtr, "nfc_register_driver")
 
 	// NFC Device/Hardware manipulation
-	purego.RegisterLibFunc(&libNfcOpen, initPtr, "nfc_open")
+	purego.RegisterLibFunc(&libNfcOpenStr, initPtr, "nfc_open")
+	purego.RegisterLibFunc(&libNfcOpenNil, initPtr, "nfc_open")
 	purego.RegisterLibFunc(&libNfcClose, initPtr, "nfc_close")
 	purego.RegisterLibFunc(&libNfcAbortCommand, initPtr, "nfc_abort_command")
 	purego.RegisterLibFunc(&libNfcListDevices, initPtr, "nfc_list_devices")
@@ -109,7 +110,8 @@ var (
 	libStrError func(pnd nfcDevicePtr) string
 
 	// nfc_device *nfc_open(nfc_context *context, const nfc_connstring connstring)
-	libNfcOpen func(context nfcContextPtr, connstring unsafe.Pointer) nfcDevicePtr
+	libNfcOpenStr func(context nfcContextPtr, connstring string) nfcDevicePtr
+	libNfcOpenNil func(context nfcContextPtr, nulPtr unsafe.Pointer) nfcDevicePtr
 	// void nfc_close(nfc_device *pnd);
 	libNfcClose func(pnd nfcDevicePtr)
 	// int nfc_abort_command(nfc_device *pnd)

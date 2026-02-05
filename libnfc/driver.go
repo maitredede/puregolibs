@@ -139,6 +139,7 @@ func RegisterDriver(driver *Driver) error {
 	}
 	// fn will be called, then the closure gets invoked
 	fn := ffi.NewCallback(func(cif *ffi.Cif, ret unsafe.Pointer, args *unsafe.Pointer, userData unsafe.Pointer) uintptr {
+		//TODO slog from context
 		slog.Debug("Hello, World Scan NFC Go!")
 
 		argArr := unsafe.Slice(args, cif.NArgs)
@@ -150,6 +151,12 @@ func RegisterDriver(driver *Driver) error {
 
 		for i := 0; i < int(connstringsLen); i++ {
 			connStrings[i].Set("")
+		}
+
+		if di.driver.Scan == nil {
+			slog.Warn(fmt.Sprintf("driver '%s' method scan is nil", di.driver.Name))
+			*(*int32)(ret) = int32(0)
+			return 0
 		}
 
 		result, err := di.driver.Scan()

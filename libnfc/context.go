@@ -6,17 +6,32 @@ import (
 	"log/slog"
 	"slices"
 	"unsafe"
-
-	"github.com/maitredede/puregolibs/strings"
 )
+
+type ContextOption interface {
+	apply(c *NfcContext)
+}
+
+type sloggerOption struct {
+	logger *slog.Logger
+}
+
+func (o sloggerOption) apply(c *NfcContext) {
+	c.log = o.logger
+}
+
+func WithSLogger(logger *slog.Logger) ContextOption {
+	return &sloggerOption{logger: logger}
+}
 
 type nfcContextPtr unsafe.Pointer
 
 type NfcContext struct {
 	ptr nfcContextPtr
+	log *slog.Logger
 }
 
-func InitContext() (*NfcContext, error) {
+func InitContext(options ...ContextOption) (*NfcContext, error) {
 	libInit()
 
 	var ptr nfcContextPtr
@@ -26,7 +41,12 @@ func InitContext() (*NfcContext, error) {
 	}
 	c := &NfcContext{
 		ptr: ptr,
+		log: slog.Default(),
 	}
+	for _, o := range options {
+		o.apply(c)
+	}
+
 	return c, nil
 }
 
@@ -53,11 +73,9 @@ func (c *NfcContext) openReal(connstring *string) (*NfcDevice, error) {
 	}
 	var pnd nfcDevicePtr
 	if connstring == nil {
-		pnd = libNfcOpen(c.ptr, nil)
+		pnd = libNfcOpenNil(c.ptr, nil)
 	} else {
-		cstr := strings.CString(*connstring)
-		p := unsafe.Pointer(cstr)
-		pnd = libNfcOpen(c.ptr, p)
+		pnd = libNfcOpenStr(c.ptr, *connstring)
 	}
 	if pnd == nil {
 		return nil, errors.New("unable to open NFC device")
@@ -106,7 +124,7 @@ func (c *NfcContext) ListDevices() ([]string, error) {
 	var constrings [maxDeviceCount]nfcConnString
 	p := unsafe.Pointer(&constrings[0])
 	deviceFound := libNfcListDevices(c.ptr, p, maxDeviceCount)
-	slog.Debug(fmt.Sprintf("found %d devices", deviceFound))
+	c.log.Debug(fmt.Sprintf("found %d devices", deviceFound))
 	result := make([]string, deviceFound)
 	for i := 0; i < int(deviceFound); i++ {
 		result[i] = constrings[i].String()
