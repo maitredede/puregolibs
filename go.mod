@@ -1,14 +1,14 @@
 module github.com/maitredede/puregolibs
 
-go 1.25
+go 1.26
 
 require (
-	github.com/ebitengine/purego v0.9.1
-	github.com/jupiterrider/ffi v0.5.1
+	github.com/ebitengine/purego v0.10.0
+	github.com/jupiterrider/ffi v0.6.0
 	github.com/neilotoole/slogt v1.1.0
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/image v0.35.0
-	golang.org/x/sys v0.40.0
+	golang.org/x/image v0.36.0
+	golang.org/x/sys v0.41.0
 )
 
 require (
