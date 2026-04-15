@@ -83,7 +83,8 @@ func (c *Conn) Close() error {
 	if c.ptr == nil {
 		return ErrConnectionIsClosed
 	}
-	libCecDestroy(c.ptr)
+	libCecClose(c.ptr)   // disconnect adapter, stop threads
+	libCecDestroy(c.ptr) // free the connection object
 	for _, d := range c.disposables {
 		d()
 	}
