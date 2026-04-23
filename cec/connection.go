@@ -133,18 +133,19 @@ func Open(name string, deviceName string, appCallbacks Callbacks) (*Conn, error)
 		return nil, err
 	}
 
-	err = openAdapter(c.ptr, adapter)
-	if err != nil {
-		c.Close()
-		return nil, err
-	}
+	// err = openAdapter(c.ptr, adapter)
+	// if err != nil {
+	// 	c.Close()
+	// 	return nil, err
+	// }
 
-	cfgRet := libCecGetCurrentConfiguration(c.ptr, c.cfg)
-	if cfgRet == 1 {
-		//OK
-	} else {
-		//ERR
-	}
+	// cfgRet := libCecGetCurrentConfiguration(c.ptr, c.cfg)
+	// if cfgRet == 1 {
+	// 	//OK
+	// } else {
+	// 	//ERR
+	// }
+	_ = adapter
 	return c, nil
 }
 

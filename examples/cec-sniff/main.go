@@ -17,29 +17,29 @@ func main() {
 		LogMessage: func(cbparam any, message cec.LogMessage) {
 			fmt.Printf("log: %v: %s\n", message.Level, message.Message)
 		},
-		KeyPress: func(cbparam any, key cec.Keypress) {
-			fmt.Printf("keypress: %v\n", key)
-		},
-		CommandReceived: func(cbparam any, command cec.Command) {
-			fmt.Printf("cmdReceived: %v\n", command)
-		},
-		ConfigurationChanged: func(cbparam any, configuration cec.Configuration) {
-			fmt.Printf("cfgChanged: %v\n", configuration)
-		},
-		Alert: func(cbparam any, alert cec.Alert, param cec.Parameter) {
-			fmt.Printf("alert: %v %v\n", alert, param)
-		},
-		MenuStateChanged: func(cbparam any, state cec.MenuState) int32 {
-			fmt.Printf("menuStateChanged: %v\n", state)
-			return 0
-		},
-		SourceActivated: func(cbparam any, logicalAddress cec.LogicalAddress, activated bool) {
-			fmt.Printf("sourceActivated: %v => %v\n", logicalAddress, activated)
-		},
-		CommandHandler: func(cbparam any, command cec.Command) int32 {
-			fmt.Printf("commandHandler: %v\n", command)
-			return 0
-		},
+		// KeyPress: func(cbparam any, key cec.Keypress) {
+		// 	fmt.Printf("keypress: %v\n", key)
+		// },
+		// CommandReceived: func(cbparam any, command cec.Command) {
+		// 	fmt.Printf("cmdReceived: %v\n", command)
+		// },
+		// ConfigurationChanged: func(cbparam any, configuration cec.Configuration) {
+		// 	fmt.Printf("cfgChanged: %+v\n", configuration)
+		// },
+		// Alert: func(cbparam any, alert cec.Alert, param cec.Parameter) {
+		// 	fmt.Printf("alert: %v %v\n", alert, param)
+		// },
+		// MenuStateChanged: func(cbparam any, state cec.MenuState) int32 {
+		// 	fmt.Printf("menuStateChanged: %v\n", state)
+		// 	return 0
+		// },
+		// SourceActivated: func(cbparam any, logicalAddress cec.LogicalAddress, activated bool) {
+		// 	fmt.Printf("sourceActivated: %v => %v\n", logicalAddress, activated)
+		// },
+		// CommandHandler: func(cbparam any, command cec.Command) int32 {
+		// 	fmt.Printf("commandHandler: %+v\n", command)
+		// 	return 0
+		// },
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
@@ -52,5 +52,6 @@ func main() {
 	}
 	defer cecc.Close()
 
+	fmt.Println("sniffing")
 	<-ctx.Done()
 }
