@@ -7,8 +7,8 @@ require (
 	github.com/jupiterrider/ffi v0.6.0
 	github.com/neilotoole/slogt v1.1.0
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/image v0.36.0
-	golang.org/x/sys v0.41.0
+	golang.org/x/image v0.39.0
+	golang.org/x/sys v0.43.0
 )
 
 require (
