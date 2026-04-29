@@ -6,6 +6,17 @@ import (
 	"github.com/jupiterrider/ffi"
 )
 
+var (
+	nativeFnLogMessage           = ffi.NewCallback(logMessageCallback)
+	nativeFnKeyPress             = ffi.NewCallback(keypressCallback)
+	nativeFnCommandReceived      = ffi.NewCallback(commandReceivedCallback)
+	nativeFnConfigurationChanged = ffi.NewCallback(configurationChangedCallback)
+	nativeFnAlert                = ffi.NewCallback(alertCallback)
+	nativeFnMenuStateChanged     = ffi.NewCallback(menuStateChangedCallback)
+	nativeFnSourceActivated      = ffi.NewCallback(sourceActivatedCallback)
+	nativeFnCommandHandler       = ffi.NewCallback(commandHandlerCallback)
+)
+
 type nativeICECCallbacks struct {
 	logMessage           unsafe.Pointer // void (CEC_CDECL* logMessage)(void* cbparam, const cec_log_message* message);
 	keyPress             unsafe.Pointer // void (CEC_CDECL* keyPress)(void* cbparam, const cec_keypress* key);
@@ -115,12 +126,9 @@ func buildCallbackLogMessage(logCB LogMessageCallback) (unsafe.Pointer, func()) 
 		panic(status)
 	}
 
-	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(logMessageCallback)
-
 	// prepare the closure
 	userData := unsafe.Pointer(&logCB)
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, nativeFnLogMessage, userData, callback); status != ffi.OK {
 		panic(status)
 	}
 
@@ -169,12 +177,9 @@ func buildCallbackKeyPress(keypressCB KeyPressCallback) (unsafe.Pointer, func())
 		panic(status)
 	}
 
-	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(keypressCallback)
-
 	// prepare the closure
 	userData := unsafe.Pointer(&keypressCB)
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, nativeFnKeyPress, userData, callback); status != ffi.OK {
 		panic(status)
 	}
 
@@ -222,12 +227,9 @@ func buildCallbackCommandReceived(cmdCB CommandReceivedCallback) (unsafe.Pointer
 		panic(status)
 	}
 
-	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(commandReceivedCallback)
-
 	// prepare the closure
 	userData := unsafe.Pointer(&cmdCB)
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, nativeFnCommandReceived, userData, callback); status != ffi.OK {
 		panic(status)
 	}
 
@@ -275,12 +277,9 @@ func buildCallbackConfigurationChanged(cfgCB ConfigurationChangedCallback) (unsa
 		panic(status)
 	}
 
-	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(configurationChangedCallback)
-
 	// prepare the closure
 	userData := unsafe.Pointer(&cfgCB)
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, nativeFnConfigurationChanged, userData, callback); status != ffi.OK {
 		panic(status)
 	}
 
@@ -336,12 +335,9 @@ func buildCallbackAlert(alertCB AlertCallback) (unsafe.Pointer, func()) {
 		panic(status)
 	}
 
-	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(alertCallback)
-
 	// prepare the closure
 	userData := unsafe.Pointer(&alertCB)
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, nativeFnAlert, userData, callback); status != ffi.OK {
 		panic(status)
 	}
 
@@ -395,12 +391,9 @@ func buildCallbackMenuStateChanged(menuCB MenuStateChangedCallback) (unsafe.Poin
 		panic(status)
 	}
 
-	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(menuStateChangedCallback)
-
 	// prepare the closure
 	userData := unsafe.Pointer(&menuCB)
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, nativeFnMenuStateChanged, userData, callback); status != ffi.OK {
 		panic(status)
 	}
 
@@ -451,12 +444,9 @@ func buildCallbackSourceActivated(srcCB SourceActivatedCallback) (unsafe.Pointer
 		panic(status)
 	}
 
-	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(keypressCallback)
-
 	// prepare the closure
 	userData := unsafe.Pointer(&srcCB)
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, nativeFnSourceActivated, userData, callback); status != ffi.OK {
 		panic(status)
 	}
 
@@ -508,12 +498,9 @@ func buildCallbackCommandHandler(cmdCB CommandHandlerCallback) (unsafe.Pointer, 
 		panic(status)
 	}
 
-	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(commandHandlerCallback)
-
 	// prepare the closure
 	userData := unsafe.Pointer(&cmdCB)
-	if status := ffi.PrepClosureLoc(closure, &cifCallback, fn, userData, callback); status != ffi.OK {
+	if status := ffi.PrepClosureLoc(closure, &cifCallback, nativeFnCommandHandler, userData, callback); status != ffi.OK {
 		panic(status)
 	}
 
