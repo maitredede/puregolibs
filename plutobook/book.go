@@ -177,7 +177,7 @@ func (b *Book) WriteToPDFStream(output io.Writer) error {
 	}
 
 	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(streamWriteCallback)
+	fn := streamWriteCB()
 
 	stream := &streamWriteData{
 		output: output,
@@ -221,7 +221,7 @@ func (b *Book) WriteToPDFStreamRange(output io.Writer, pageStart, pageEnd, pageS
 	}
 
 	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(streamWriteCallback)
+	fn := streamWriteCB()
 
 	stream := &streamWriteData{
 		output: output,
@@ -274,7 +274,7 @@ func (b *Book) SetCustomResourceFetcher(fetcher CustomResourceFetcher) error {
 	}
 
 	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(customResourceFetcherCallback)
+	fn := resourceFetchCB()
 
 	// prepare the closure
 	if status := ffi.PrepClosureLoc(b.fetcherClosure, &cifCallback, fn, nil, callback); status != ffi.OK {
@@ -340,7 +340,7 @@ func (b *Book) WriteToPNGStream(output io.Writer, width, height int) error {
 	}
 
 	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(streamWriteCallback)
+	fn := streamWriteCB()
 
 	stream := &streamWriteData{
 		output: output,

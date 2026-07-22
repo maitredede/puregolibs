@@ -99,7 +99,7 @@ func (c *ImageCanvas) WriteToPNGStream(output io.Writer) error {
 	}
 
 	// fn will be called, then the closure gets invoked
-	fn := ffi.NewCallback(streamWriteCallback)
+	fn := streamWriteCB()
 
 	stream := &streamWriteData{
 		output: output,

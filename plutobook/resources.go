@@ -7,11 +7,20 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
+	"sync"
 	"unsafe"
 
 	"github.com/jupiterrider/ffi"
 	"github.com/maitredede/puregolibs/strings"
 )
+
+// resourceFetchCB returns the C trampoline for customResourceFetcherCallback,
+// created exactly once (see streamWriteCB: purego's callback pool is capped at
+// 2000 and never freed, so per-call allocation leaks it). Stateless -- the target
+// Book reaches it through the closure userData pointer.
+var resourceFetchCB = sync.OnceValue(func() uintptr {
+	return ffi.NewCallback(customResourceFetcherCallback)
+})
 
 type resourceDataPtr unsafe.Pointer
 

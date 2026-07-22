@@ -3,10 +3,21 @@ package plutobook
 import (
 	"fmt"
 	"io"
+	"sync"
 	"unsafe"
 
 	"github.com/jupiterrider/ffi"
 )
+
+// streamWriteCB returns the C trampoline for streamWriteCallback, created exactly
+// once. purego.NewCallback (which ffi.NewCallback wraps) draws from a fixed global
+// pool of 2000 callbacks that is NEVER freed, so allocating one per render leaks
+// the pool and eventually panics ("maximum number of callbacks reached"). The
+// callback is stateless -- per-call data reaches it through the libffi closure's
+// userData pointer -- so a single shared trampoline is correct.
+var streamWriteCB = sync.OnceValue(func() uintptr {
+	return ffi.NewCallback(streamWriteCallback)
+})
 
 type streamWriteData struct {
 	output io.Writer
