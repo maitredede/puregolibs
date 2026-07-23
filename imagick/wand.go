@@ -119,7 +119,15 @@ func (w *MagickWand) GetImageBlob() ([]byte, error) {
 		return nil, err
 	}
 
-	blob := unsafe.Slice(blobPtr, length)
+	// Copy into a Go-owned slice: blobPtr is native ImageMagick memory freed by
+	// the deferred RelinquishMemory when this function returns. Returning a
+	// slice that aliases it is a use-after-free — it happens to read on glibc
+	// but faults under musl's allocator.
+	if blobPtr == nil || length == 0 {
+		return []byte{}, nil
+	}
+	blob := make([]byte, length)
+	copy(blob, unsafe.Slice(blobPtr, length))
 
 	return blob, nil
 }
