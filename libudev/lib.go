@@ -130,7 +130,7 @@ var (
 	libudevDeviceRef                     func(device Device) Device
 	libudevDeviceUnref                   func(device Device) Device
 	libudevDeviceNewFromSyspath          func(udev UDev, syspath string) Device
-	libudevDeviceNewFromDevNum           func(udev UDev, typ byte, devnum uint32) Device
+	libudevDeviceNewFromDevNum           func(udev UDev, typ byte, devnum uint64) Device
 	libudevDeviceNewFromSubsystemSysname func(udev UDev, subsystem string, sysname string) Device
 	libudevDeviceNewFromDeviceID         func(udev UDev, id string) Device
 	libudevDeviceNewFromEnvironment      func(udev UDev) Device

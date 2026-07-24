@@ -149,7 +149,7 @@ func (c *Context) OpenDevices(opener func(desc *DeviceDesc) bool) ([]*Device, er
 	var lst *libusbDevice
 	size := libusbGetDeviceList(c.ptr, &lst)
 	if size < 0 {
-		err := errorFromRet(size)
+		err := errorFromRet(int32(size))
 		return nil, err
 	}
 	defer libusbFreeDeviceList(lst, 0)

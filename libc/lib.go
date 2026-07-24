@@ -35,7 +35,7 @@ func initCLib() {
 }
 
 var (
-	libcCalloc func(nmemb int32, size int32) unsafe.Pointer
+	libcCalloc func(nmemb uint, size uint) unsafe.Pointer
 	libcFree   func(ptr unsafe.Pointer)
-	libcPoll   func(fds *Pollfd, nfds uint32, timeout int32) int32
+	libcPoll   func(fds *Pollfd, nfds uint, timeout int32) int32
 )

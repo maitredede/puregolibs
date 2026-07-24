@@ -186,7 +186,7 @@ var (
 	libusbSetLocale     func(ctx libusbContext, locale string) int32
 	libusbStrError      func(errorCode int32) string
 
-	libusbGetDeviceList  func(ctx libusbContext, list **libusbDevice) int32
+	libusbGetDeviceList  func(ctx libusbContext, list **libusbDevice) int
 	libusbFreeDeviceList func(list *libusbDevice, unrefDevices int32)
 	libusbRefDevice      func(device libusbDevice) libusbDevice
 	libusbUnrefDevice    func(device libusbDevice)

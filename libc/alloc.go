@@ -2,7 +2,7 @@ package libc
 
 import "unsafe"
 
-func CAlloc(nmemb int32, size int32) unsafe.Pointer {
+func CAlloc(nmemb uint, size uint) unsafe.Pointer {
 	initCLib()
 
 	return libcCalloc(nmemb, size)

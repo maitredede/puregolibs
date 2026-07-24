@@ -101,5 +101,5 @@ var (
 	libMadSetVersion func(mad uintptr, version byte)
 
 	// ssize_t		 mifare_application_read (MifareTag tag, Mad mad, const MadAid aid, void *buf, size_t nbytes, const MifareClassicKey key, const MifareClassicKeyType key_type);
-	libMifareApplicationRead func(tag uintptr, mad uintptr, aid *byte, buf uintptr, nbytes uint32, key *byte, keyType MifareClassicKeyType) int32
+	libMifareApplicationRead func(tag uintptr, mad uintptr, aid *byte, buf uintptr, nbytes uint, key *byte, keyType MifareClassicKeyType) int
 )

@@ -31,6 +31,6 @@ func Poll(fds []Pollfd, timeout int) int {
 	fdsPtr := &fds[0]
 	nfds := len(fds)
 
-	ret := libcPoll(fdsPtr, uint32(nfds), int32(timeout))
+	ret := libcPoll(fdsPtr, uint(nfds), int32(timeout))
 	return int(ret)
 }

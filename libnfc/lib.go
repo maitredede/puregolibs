@@ -117,7 +117,7 @@ var (
 	// int nfc_abort_command(nfc_device *pnd)
 	libNfcAbortCommand func(pnd nfcDevicePtr) int32
 	// size_t nfc_list_devices(nfc_context *context, nfc_connstring connstrings[], size_t connstrings_len)
-	libNfcListDevices func(context nfcContextPtr, connstrings unsafe.Pointer, constringsLen uint32) uint32
+	libNfcListDevices func(context nfcContextPtr, connstrings unsafe.Pointer, constringsLen uint) uint
 	// int nfc_idle(nfc_device *pnd)
 	libNfcIdle func(pnd nfcDevicePtr) int32
 
@@ -126,11 +126,11 @@ var (
 	// int nfc_initiator_init_secure_element(nfc_device *pnd)
 	libNfcInitiatorInitSecureElement func(pnd nfcDevicePtr) int32
 	// int nfc_initiator_select_passive_target(nfc_device *pnd, const nfc_modulation nm, const uint8_t *pbtInitData, const size_t szInitData, nfc_target *pnt)
-	libNfcInitiatorSelectPassiveTarget func(pnd nfcDevicePtr, nm ModulationType, initData *byte, szInitData int32, target nfcTargetPtr) int32
+	libNfcInitiatorSelectPassiveTarget func(pnd nfcDevicePtr, nm ModulationType, initData *byte, szInitData uint, target nfcTargetPtr) int32
 	// int nfc_initiator_list_passive_targets(nfc_device *pnd, const nfc_modulation nm, nfc_target ant[], const size_t szTargets)
-	libNfcInitiatorListPassiveTargets func(pnd nfcDevicePtr, nm ModulationType, ant *uintptr, szTargets int32) int32
+	libNfcInitiatorListPassiveTargets func(pnd nfcDevicePtr, nm ModulationType, ant *uintptr, szTargets uint) int32
 	// int nfc_initiator_poll_target(nfc_device *pnd, const nfc_modulation *pnmTargetTypes, const size_t szTargetTypes, const uint8_t uiPollNr, const uint8_t uiPeriod, nfc_target *pnt)
-	libNfcInitiatorPollTarget func(pnd nfcDevicePtr, targetTypes uintptr, szTargetTypes int32, pollNr byte, period byte, target nfcTargetPtr) int32
+	libNfcInitiatorPollTarget func(pnd nfcDevicePtr, targetTypes uintptr, szTargetTypes uint, pollNr byte, period byte, target nfcTargetPtr) int32
 
 	// int nfc_initiator_select_dep_target(nfc_device *pnd, const nfc_dep_mode ndm, const nfc_baud_rate nbr, const nfc_dep_info *pndiInitiator, nfc_target *pnt, const int timeout)
 	libNfcInitiatorSelectDepTarget func(pnd nfcDevicePtr, m DepMode, r BaudRate, initiator uintptr, target nfcTargetPtr, timeout int16) int32
