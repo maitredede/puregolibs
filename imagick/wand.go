@@ -81,7 +81,7 @@ func (w *MagickWand) ReadImageBlob(blob []byte) error {
 		return errors.New("zero-length blob not permitted")
 	}
 	// native MagickReadImageBlob
-	ok := libWandMagickReadImageBlob(w.ptr, &blob[0], uint32(len(blob)))
+	ok := libWandMagickReadImageBlob(w.ptr, &blob[0], uint(len(blob)))
 	return w.getLastErrorIfFailed(ok)
 }
 
@@ -111,7 +111,7 @@ func (w *MagickWand) GetImageBlob() ([]byte, error) {
 	}
 	// native GetImageBlob
 
-	var length uint32
+	var length uint
 	blobPtr := libWandMagickGetImageBlob(w.ptr, &length)
 	defer libWandMagickRelinquishMemory(unsafe.Pointer(blobPtr))
 

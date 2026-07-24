@@ -86,10 +86,10 @@ var (
 	libWandNewMagickWand                 func() magickWandPtr
 	libWandIsMagickWand                  func(wand magickWandPtr) bool
 	libWandDestroyMagickWand             func(wand magickWandPtr) magickWandPtr
-	libWandMagickReadImageBlob           func(wand magickWandPtr, blob *byte, length uint32) bool
+	libWandMagickReadImageBlob           func(wand magickWandPtr, blob *byte, length uint) bool
 	libWandMagickGetImageFormat          func(wand magickWandPtr) string
 	libWandMagickSetImageFormat          func(wand magickWandPtr, format string) bool
-	libWandMagickGetImageBlob            func(wand magickWandPtr, length *uint32) *byte
+	libWandMagickGetImageBlob            func(wand magickWandPtr, length *uint) *byte
 	libWandMagickRelinquishMemory        func(resource unsafe.Pointer)
 	libWandMagickGetInterlaceScheme      func(wand magickWandPtr) InterlaceType
 	libWandMagickSetInterlaceScheme      func(wand magickWandPtr, scheme InterlaceType) bool
